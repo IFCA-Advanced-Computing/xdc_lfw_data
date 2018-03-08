@@ -7,4 +7,5 @@ def get_sentinel2_raw(inidate,enddate,region):
      enddate: datetime
      region: Array with 4 coordinates
  """
-  return "List of images"
+ print("Sentinel2")
+ return "Image"

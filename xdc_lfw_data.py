@@ -1,5 +1,8 @@
 import argparse
 from datetime import datetime
+from modules import sentinel2
+from modules import clouds
+from modules import water
 
 def valid_date(s):
     try:
@@ -45,3 +48,24 @@ args = parser.parse_args()
 #TODO Check end_date > start_date
 
 #TODO Check region to attach coordinates
+
+#Action management
+if args.action is not None:
+    if args.action == 'cloud_coverage':
+        sat_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
+        cloud_cov = clouds.cloud_coverage(sat_img)
+        print(cloud_cov)
+    elif args.action == 'cloud_mask':
+        sat_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
+        cloud_mask = clouds.cloud_mask(sat_img)
+        print(cloud_mask)
+    elif args.action == 'water_surface':
+        sat_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
+        water_sur = water.water_surface(sat_img)
+        print(water_sur)
+    elif args.action == 'water_mask':
+        sat_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
+        water_mask = water.water_mask(sat_img)
+        print(water_mask)
+
+print("Fin")
