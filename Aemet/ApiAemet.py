@@ -56,109 +56,97 @@ def datosEstacion(key,fechaIni,fechaFin,estaciones):
         print ("pepe")
     with open('pruebaEstaciones.csv', 'w', newline='') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow(["Fecha","Tmed","Indicativo"])
+        spamwriter.writerow(["Date","Tmed","Id"])
         for estacion in estaciones:
             #print(estacion)
             #salidaInformacion[0][0]=2
             conn.request("GET", "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+fechaIni+"/fechafin/"+fechaFin+"/estacion/"+estacion['indicativo']+"/?api_key="+key, headers=headers)
             res = conn.getresponse()
-            dataSantander = res.read().decode('utf-8')
-            dataSantander = json.loads(dataSantander)
-            #print("Primera parte")
-            #print(dataSantander)
-            #print("Segunda parte")
-            conn.request("GET", dataSantander['datos'], headers=headers)
+            dataEstacion = res.read().decode('utf-8')
+            dataEstacion = json.loads(dataEstacion)
+            conn.request("GET", dataEstacion['datos'], headers=headers)
             res= conn.getresponse()
-            datosSantander = res.read().decode('utf-8','ignore')
-            datosSantander= json.loads(datosSantander)
+            datosEstacion = res.read().decode('utf-8','ignore')
+            datosEstacion= json.loads(datosEstacion)
             #Añadimos los datos a la lista
-            salidaInformacion.append([estacion,datosSantander])
-            for resultados in datosSantander:
+            salidaInformacion.append([estacion,datosEstacion])
+            for resultados in datosEstacion:
                 #print(resultados['fecha'],":",resultados['tmed'],"C")
                 spamwriter.writerow([resultados['fecha'], resultados['tmed'],resultados['indicativo']])
-            
-            #print(datosSantander)
-            #print ("Otra")
+    #Devolvemos la información
     return salidaInformacion
     
 #Método usado para guardar la información en un csv
-    def guardarInformacion (datos):
-        with open('prueba.csv', 'w', newline='') as csvfile:
-            spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-            spamwriter.writerow(["Fecha","Tmed"])
-            for resultados in datos:
-                #print(resultados['fecha'],":",resultados['tmed'],"C")
-                spamwriter.writerow([resultados['fecha'], resultados['tmed']])
+def guardarInformacion (datos):
+    with open('prueba.csv', 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        spamwriter.writerow(["Fecha","Tmed"])
+        for resultados in datos:
+            #print(resultados['fecha'],":",resultados['tmed'],"C")
+            spamwriter.writerow([resultados['fecha'], resultados['tmed']])
 
 #Método usado para crear los metadatos del csv
 def crearMetadatos(estaciones):
     #Creamos un archivo de metadatos asociado al archivo anterior
-    eml = ET.Element("eml:eml",system="knb",xmlns="eml://ecoinformatics.org/eml-2.1.1")
+    ET.register_namespace('eml',"eml://ecoinformatics.org/eml-2.1.1") #some name
+    eml = ET.Element("{eml://ecoinformatics.org/eml-2.1.1}eml",system="knb" )
+    #eml = ET.Element("eml:eml",system="knb",xmlns="eml://ecoinformatics.org/eml-2.1.1")
     acceso = ET.SubElement(eml, "access", authSystem="knb", order="allowFirst")
     permiso=ET.SubElement(acceso,"allow")
-    ET.SubElement(permiso,"principal").text="público"
-    ET.SubElement(permiso,"permission").text="lectura"
+    ET.SubElement(permiso,"principal").text="public"
+    ET.SubElement(permiso,"permission").text="read"
     #Creamos otro hijo de eml
     dataset=ET.SubElement(eml,"dataset")
     ET.SubElement(dataset,"title").text="Datos de temperatura media en enero"
     coverage=ET.SubElement(dataset,"coverage")
     for estacion in estaciones:
-        coverageG=ET.SubElement(coverage,"geographicCoverage")
-        ET.SubElement(coverageG,"geographicDescription").text="Santander"
+        coverageG=ET.SubElement(coverage,"geographicCoverage",id=estacion['indicativo'])
+        ET.SubElement(coverageG,"geographicDescription").text=estacion['nombre'].title()
         ET.SubElement(coverageG,"gRingLatitude").text=estacion['latitud']
         ET.SubElement(coverageG,"gRingLongitude").text=estacion['longitud']
-        ET.SubElement(coverageG,"altitude").text=estacion['altitud']
+        boundingAltitude=ET.SubElement(coverageG,"boundingAltitudes")
+        ET.SubElement(boundingAltitude,"altitudeMinimum ").text=estacion['altitud']
+        ET.SubElement(boundingAltitude,"altitudeMaximum ").text=estacion['altitud']
+        ET.SubElement(boundingAltitude,"altitudeUnits ").text='meter'
     #coverageT=ET.SubElement(coverage,"temporalCoverage")
     #ET.SubElement(coverageT,"FechaComienzo").text=datosSantander[0]['fecha']
     #ET.SubElement(coverageT,"FechaComienzo").text=datosSantander[30]['fecha']
     tablaDatos=ET.SubElement(dataset,"dataTable")
-    ET.SubElement(tablaDatos,"NombreArchivo").text="prueba1.csv"
+    ET.SubElement(tablaDatos,"NombreArchivo").text="pruebaEstaciones.csv"
     atributoLista=ET.SubElement(tablaDatos,"attributeList")
-    atributoFecha=ET.SubElement(atributoLista,"attribute",id="Fecha")
-    ET.SubElement(atributoFecha,"name").text="Fecha"
+    atributoFecha=ET.SubElement(atributoLista,"attributeName",id="Date")
+    ET.SubElement(atributoFecha,"name").text="Date"
     ET.SubElement(atributoFecha,"formatString").text="YYYY-MM-DD"
-    atributoTemp=ET.SubElement(atributoLista,"attribute",id="Temperatura")
-    ET.SubElement(atributoTemp,"name").text="Temperatura"
+    atributoTemp=ET.SubElement(atributoLista,"attributeName",id="Tmed")
+    ET.SubElement(atributoTemp,"attributeName").text="Temperature"
     ET.SubElement(atributoTemp,"Unidadades").text="ºC"
     tree = ET.ElementTree(eml)
 
     #Escribimos los datos en un archivo
-    tree.write("filename3.xml",encoding='UTF-8', xml_declaration=True,short_empty_elements=True)
+    tree.write("metadatos.xml",encoding='UTF-8', xml_declaration=True,short_empty_elements=True)
     #print(tree)
 
 
-print("hhh")
+#Obtenemos todas las estaciones de Cantabria
+estacionesCantabria=buscarEstaciones(key,'Cantabria')
 
+#Aquí vemos todas las estaciones que hay en Cantabria
+print(estacionesCantabria)
 
-prueba1=buscarEstaciones(key,'Cantabria')
-
-
-print(prueba1)
-#print(prueba1)
-#data=encontrarTodasEstaciones(key)
 
 fechaI="2018-01-01T00%3A00%3A00UTC"
 fechaF="2018-01-31T00%3A00%3A00UTC"
 
 
-tt=datosEstacion(key,"2018-01-30T00%3A00%3A00UTC","2018-01-31T00%3A00%3A00UTC",prueba1[0:3])
+tt=datosEstacion(key,"2018-01-30T00%3A00%3A00UTC","2018-01-31T00%3A00%3A00UTC",estacionesCantabria[0:3])
 
 
-crearMetadatos(prueba1[0:3])
-
-
-#crearMetadatos(prueba1)
-
-
-#Ahora que tenemos el indicativo vamos a consultar para esa estacion
-#GET /api/valores/climatologicos/diarios/datos/fechaini/{fechaIniStr}/fechafin/{fechaFinStr}/estacion/{idema}
+crearMetadatos(estacionesCantabria[0:3])
 
 
 
 
-#Vemos los resultados.
-#for resultados in datosSantander:
-#    print(resultados['fecha'],":",resultados['tmed'],"C")
+
  
 #with open('prueba.csv', 'w', newline='') as csvfile:
 #    spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
