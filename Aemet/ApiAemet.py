@@ -51,9 +51,11 @@ def buscarEstaciones(key,provincia):
 #La API solo permite hacer consultas de 31 días máximo
 def datosEstacion(key,fechaIni,fechaFin,estaciones):
     #Lista que almacena la estación y los valores.
+    print("Aquii")
+    print(type(estaciones))
     salidaInformacion=[]
     if (type(estaciones))==dict:
-        print ("pepe")
+        print(estaciones)       
     with open('pruebaEstaciones.csv', 'w', newline='') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
         spamwriter.writerow(["Date","Tmed","Id"])
@@ -131,32 +133,17 @@ def crearMetadatos(estaciones):
 estacionesCantabria=buscarEstaciones(key,'Cantabria')
 
 #Aquí vemos todas las estaciones que hay en Cantabria
-print(estacionesCantabria)
+#print(estacionesCantabria)
 
 
 fechaI="2018-01-01T00%3A00%3A00UTC"
 fechaF="2018-01-31T00%3A00%3A00UTC"
 
 
-tt=datosEstacion(key,"2018-01-30T00%3A00%3A00UTC","2018-01-31T00%3A00%3A00UTC",estacionesCantabria[0:3])
+tt=datosEstacion(key,"2018-01-30T00%3A00%3A00UTC","2018-01-31T00%3A00%3A00UTC",estacionesCantabria[0])
 
 
-crearMetadatos(estacionesCantabria[0:3])
-
-
-
+#crearMetadatos(estacionesCantabria[0])
 
 
  
-#with open('prueba.csv', 'w', newline='') as csvfile:
-#    spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-#    spamwriter.writerow(["Fecha","Tmed"])
-#    
-#    for resultados in datosSantander:
-#        #print(resultados['fecha'],":",resultados['tmed'],"C")
-#        spamwriter.writerow([resultados['fecha'], resultados['tmed']])
-
-
-
-
-#Preguntar etiqueta de altitude
