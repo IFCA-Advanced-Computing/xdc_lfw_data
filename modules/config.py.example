@@ -1,0 +1,5 @@
+#Meteo module params
+
+METEO_API_TOKEN='token_here'
+METEO_API_URL='opendata.aemet.es'
+
