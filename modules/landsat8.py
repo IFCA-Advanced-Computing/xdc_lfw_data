@@ -113,8 +113,3 @@ def get_landsat8_raw(inidate,enddate,region):
         json.dump(metadata, outfile)
         
     return files
-
-#start_date = '01-01-2014'
-#end_date = '01-06-2014'
-#name = 'CdP'
-#get_landsat8_raw(start_date,end_date,name)
