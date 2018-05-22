@@ -121,11 +121,3 @@ def landsat_cloud_mask(region, files):
         Band1[:,:] = np.ones((len(lat), len(lon))) * cloud * 255
     
         ncfile.close
-
-
-#sentinel_files = ['GS2A_20160204T110242_003237_N02.01']
-#landsat_files = ['2014-01-09', '2014-01-25', '2014-02-10', '2014-02-19']
-#region = 'CdP'
-#cloud_coverage(region, files)
-#sentinel_cloud_mask(region, files)
-#landsat_cloud_mask(region, landsat_files)
