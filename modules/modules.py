@@ -4,6 +4,7 @@ from . import water
 from . import config
 from . import metadata_gen
 from . import meteo
+from . import config
 
 def get_sentinel2_raw(inidate,enddate,region):
     return s2.get_sentinel2_raw(inidate,enddate,region)

@@ -16,7 +16,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
 
     #-Dataset Module
     dataset=ET.SubElement(eml,"dataset")
-    ET.SubElement(dataset,"title").text="Datos de temperatura media en enero"
+    ET.SubElement(dataset,"title").text=title
     
     #--Coverage
     coverage=ET.SubElement(dataset,"coverage")
@@ -41,17 +41,14 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
     ET.SubElement(ET.SubElement(rangeOfDates,"endDate"),"calendarDate").text=dateEnd
    
     #--Dataset type
-    tablaDatos=ET.SubElement(dataset,"dataTable")
-    ET.SubElement(tablaDatos,"FileName").text=title+".csv"
+    fileFormat = "csv"
+    if fileFormat == "csv":
+        
+        #filename.split(".")[-1]
+        dataTable=ET.SubElement(dataset,"dataTable")
+        ET.SubElement(dataTable,"FileName").text=title+".csv"
+        dataTable = file_block_csv(title,params,dataTable)
 
-    #--Attribute list
-    atributoLista=ET.SubElement(tablaDatos,"attributeList")
-    atributoFecha=ET.SubElement(atributoLista,"attributeName",id="Date")
-    ET.SubElement(atributoFecha,"name").text="Date"
-    ET.SubElement(atributoFecha,"formatString").text="YYYY-MM-DD"
-    atributoTemp=ET.SubElement(atributoLista,"attributeName",id="Tmed")
-    ET.SubElement(atributoTemp,"attributeName").text="Temperature"
-    ET.SubElement(atributoTemp,"Unidadades").text="C"
     tree = ET.ElementTree(eml)
 
     #Escribimos los datos en un archivo
@@ -74,7 +71,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
 
     #-Dataset Module
     dataset=ET.SubElement(eml,"dataset")
-    ET.SubElement(dataset,"title").text="Datos de temperatura media en enero"
+    ET.SubElement(dataset,"title").text=title
     
     #--Coverage
     coverage=ET.SubElement(dataset,"coverage")
@@ -99,19 +96,60 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
     ET.SubElement(ET.SubElement(rangeOfDates,"endDate"),"calendarDate").text=dateEnd
    
     #--Dataset type
-    tablaDatos=ET.SubElement(dataset,"dataTable")
-    ET.SubElement(tablaDatos,"NombreArchivo").text="pruebaEstaciones.csv"
+    fileFormat = "csv"
+    if fileFormat == "csv":
 
-    #--Attribute list
-    atributoLista=ET.SubElement(tablaDatos,"attributeList")
-    atributoFecha=ET.SubElement(atributoLista,"attributeName",id="Date")
-    ET.SubElement(atributoFecha,"name").text="Date"
-    ET.SubElement(atributoFecha,"formatString").text="YYYY-MM-DD"
-    atributoTemp=ET.SubElement(atributoLista,"attributeName",id="Tmed")
-    ET.SubElement(atributoTemp,"attributeName").text="Temperature"
-    ET.SubElement(atributoTemp,"Unidadades").text="C"
+        #filename.split(".")[-1]
+        dataTable=ET.SubElement(dataset,"dataTable")
+        ET.SubElement(dataTable,"FileName").text=title+".csv"
+        dataTable = file_block_csv(title,params,dataTable)
+
     tree = ET.ElementTree(eml)
 
     #Escribimos los datos en un archivo
     tree.write(title+".xml",encoding='UTF-8', xml_declaration=True)
     #print(tree)
+
+def file_block_csv(title,params,parent):
+    dataTable=ET.SubElement(parent,"dataTable", id=title)
+    ET.SubElement(dataTable,"entityName").text=title
+    phisical = ET.SubElement(dataTable,"physical")
+    ET.SubElement(phisical,"objectName").text=title
+    ET.SubElement(phisical,"size", unit="bytes").text="1231" #TODO
+    ET.SubElement(phisical,"characterEncoding").text="ASCII"
+
+    dataFormat = ET.SubElement(phisical,"dataFormat")
+    textFormat = ET.SubElement(dataFormat,"textFormat")
+
+    ET.SubElement(textFormat,"numHeaderLines").text="1" #TODO
+    ET.SubElement(textFormat,"attributeOrientation").text="column"
+    ET.SubElement(ET.SubElement(textFormat,"simpleDelimited"),"fieldDelimiter").text="\\t"
+
+    #--Attribute list
+    dataTable = attribute_block_csv(params,dataTable)
+    return parent
+
+def attribute_block_csv(params,dataTable):
+    #TODO Complete
+    attributeList=ET.SubElement(dataTable,"attributeList")
+    for att in params:
+        if att == "Date":
+            attribute=ET.SubElement(attributeList,"attribute",id="Date")
+            ET.SubElement(attribute,"attributeName").text="Date"
+            ET.SubElement(attribute,"attributeDefinition").text="Date"
+            ET.SubElement(attribute,"formatString").text="YYYY-MM-DD"
+        
+        elif att == "Temp":
+            attribute=ET.SubElement(attributeList,"attribute",id="Date")
+            ET.SubElement(attribute,"attributeName").text="Temperature"
+            ET.SubElement(attribute,"attributeLabel").text="Temp"
+            ET.SubElement(attribute,"attributeDefinition").text="Date" 
+            ET.SubElement(attribute,"standardUnit").text="Celsius"
+        
+        elif att == "ID":
+            attribute=ET.SubElement(attributeList,"attribute",id="ID")
+            ET.SubElement(attribute,"attributeName").text="ID"
+            ET.SubElement(attribute,"attributeLabel").text="ID"
+            ET.SubElement(attribute,"storageType").text="string"
+
+    return dataTable

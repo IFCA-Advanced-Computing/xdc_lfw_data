@@ -5,6 +5,7 @@ import json
 import csv
 import xml.etree.cElementTree as ET
 from modules import metadata_gen
+import config
 
 """Lo primero que debemos hacer es obtener todas las estaciones para conocer su identificador 
 y asi buscar los resgistros historicos para la zona que queramos."""
@@ -32,13 +33,13 @@ def buscarEstaciones(key,api,lat,lon):
     conn.close()
     return estacionesEncontradas
 
-def datosEstacion(key,api,fechaIni,fechaFin,estacion,general_name):
+def datosEstacion(key,api,fechaIni,fechaFin,estacion,general_name,params):
     headers = {'cache-control': "no-cache" }
     conn = http.client.HTTPSConnection(api)
     salidaInformacion=[]
     with open(general_name+'.csv', 'w') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow(["Date","Tmed","Id"])
+        spamwriter.writerow(params)
         req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+fechaIni+"/fechafin/"+fechaFin+"/estacion/"+estacion+"/?api_key="+key
         print(req)
         conn.request("GET",req, headers=headers)
@@ -52,17 +53,18 @@ def datosEstacion(key,api,fechaIni,fechaFin,estacion,general_name):
         salidaInformacion.append([estacion,datosEstacion])
         for resultados in datosEstacion:
             #print(resultados['fecha'],":",resultados['tmed'],"C")
-            spamwriter.writerow([resultados['fecha'], resultados['tmed'],resultados['indicativo']])
+            spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
     conn.close()
     return salidaInformacion
 
 def get_meteo(startDate, endDate, region):
     general_name = region+"_"+startDate.strftime('%Y-%m-%d')+"_"+endDate.strftime('%Y-%m-%d')
-    METEO_API_TOKEN='eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ2aWxsYXJyakB1bmljYW4uZXMiLCJqdGkiOiJkZDc5ZjVmNy1hODQwLTRiYWQtYmMzZi1jNjI3Y2ZkYmUxNmYiLCJpc3MiOiJBRU1FVCIsImlhdCI6MTUyMDg0NzgyOSwidXNlcklkIjoiZGQ3OWY1ZjctYTg0MC00YmFkLWJjM2YtYzYyN2NmZGJlMTZmIiwicm9sZSI6IiJ9.LMl_cKCtYi3RPwLwO7fJYZMes-bdMVR91lRFZbUSv84'
-    METEO_API_URL='opendata.aemet.es'
+    METEO_API_TOKEN=config.METEO_API_TOKEN
+    METEO_API_URL=config.METEO_API_URL
     stations = buscarEstaciones(METEO_API_TOKEN,METEO_API_URL,region,region) #TODO add lat/lon
     estacion=stations[0]
     print(estacion)
-    tt=datosEstacion(METEO_API_TOKEN,METEO_API_URL,startDate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC",endDate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC",estacion['indicativo'],general_name)
-    metadata_gen.metadata_gen(general_name,startDate.strftime('%Y-%m-%d'),endDate.strftime('%Y-%m-%d'),region,"-3.43","41.33",general_name)
+    params = ["ID","Date","Temp"] #TODO not hardocodding
+    tt=datosEstacion(METEO_API_TOKEN,METEO_API_URL,startDate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC",endDate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC",estacion['indicativo'],general_name,params)
+    metadata_gen.metadata_gen(general_name,startDate.strftime('%Y-%m-%d'),endDate.strftime('%Y-%m-%d'),region,"-3.43","41.33",params)
     return "done"

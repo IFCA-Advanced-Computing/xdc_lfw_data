@@ -1,8 +1,10 @@
+#!/usr/bin/python
 import argparse
 from datetime import datetime
 from modules import sentinel2
 from modules import clouds
 from modules import water
+from modules import meteo
 
 def valid_date(s):
     try:
@@ -34,13 +36,13 @@ parser.add_argument('--region',
 parser.add_argument('--action',
                     dest='action',
                     required=False,
-                    choices=['cloud_coverage','cloud_mask','water_surface', 'water_mask'],
+                    choices=['cloud_coverage','cloud_mask','water_surface', 'water_mask', 'meteo'],
                     help='Valid values: cloud_coverage, cloud_mask, water_surface, water_mask')
 
 parser.add_argument('--param',
                     dest='param',
                     required=False,
-                    choices=['chl', 'turbidity'],
+                    choices=['chl', 'turbidity', 'temp'],
                     help='Valid values: chl, turbidity')
 
 args = parser.parse_args()
@@ -67,5 +69,8 @@ if args.action is not None:
         sat_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
         water_mask = water.water_mask(sat_img)
         print(water_mask)
+    elif args.action == 'meteo':
+        meteo = meteo.get_meteo(args.start_date,args.end_date,args.region)
+        print(meteo)
 
 print("Fin")

@@ -1,0 +1,82 @@
+#!/usr/bin/python
+from datetime import datetime
+from modules import sentinel2
+from modules import clouds
+from modules import water
+from modules import meteo
+from wsgiref.simple_server import make_server
+from pyramid.config import Configurator
+from pyramid.response import Response
+from pyramid.view import view_config
+import json
+
+@view_config(renderer='json')
+def satellite(request):
+#Checks json body not empty
+  if request.json_body == '':
+    return {'Error':'No JSON body provided'}
+  else:
+    print(request.json_body)
+    data = request.json_body #Data is now a json object
+    region = data['region']
+    inidate = data['inidate']
+    enddate = data['enddate']
+    action = data['action']
+    
+    print(region)
+    print(action)   
+    if region not in ['cdp','Sanabria','sanabria', 'cogotas', 'Cogotas']:
+      return {'Error':'Region not accepted'}
+        
+    #Check dates
+    try:
+      datetime.strptime(inidate, "%Y-%m-%d")
+    except ValueError:
+      print("Not a valid date: '{0}'.".format(inidate))
+      return {'Error':'Invalid Initial date'}
+    try:
+      datetime.strptime(enddate, "%Y-%m-%d")
+    except ValueError:
+      print("Not a valid date: '{0}'.".format(enddate))
+      return {'Error':'Invalid End date'}        
+       
+    #Action management
+    if action is not None:
+      if action == 'cloud_coverage':
+        #TODO
+        sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
+        cloud_cov = clouds.cloud_coverage(sat_img)
+        return {'cloud_coverage': '0.5'}
+      elif action == 'cloud_mask':
+        #TODO
+        sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
+        cloud_mask = clouds.cloud_mask(sat_img)
+        return {'cloud_mask': 'path/to/file'}
+      elif action == 'water_surface':
+        #TODO
+        sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
+        water_sur = water.water_surface(sat_img)
+        return {'water_surface': '1000'}
+      elif action == 'water_mask':
+        #TODO
+        sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
+        water_mask = water.water_mask(sat_img)
+        return {'water_mask': 'path_to_file'}
+      elif action == 'meteo':
+        meteo = meteo.get_meteo(inidate,enddate,region)
+        print(meteo)
+      else: 
+        return {'Error':'No action provided'}
+    else: 
+      return {'Error':'No action provided'}
+
+if __name__ == '__main__':
+    config = Configurator()
+
+    config.add_route('satellite', '/satellite')
+
+    config.add_view(satellite, route_name='satellite', renderer='json')
+
+    app = config.make_wsgi_app()
+    server = make_server('0.0.0.0', 6543, app)
+    server.serve_forever()
