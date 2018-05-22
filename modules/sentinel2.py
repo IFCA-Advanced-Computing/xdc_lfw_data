@@ -116,8 +116,3 @@ def get_sentinel2_raw(inidate,enddate,region):
         json.dump(metadata, outfile)
         
     return files
-
-#start_date = '01-01-2016'
-#end_date = '01-04-2016'
-#name = 'CdP'
-#files = get_sentinel2_raw(start_date,end_date,name)
