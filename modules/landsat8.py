@@ -4,7 +4,7 @@ inidate: datetime
 enddate: datetime
 region: name of one of the reservoirs saved in the "coord_reservoirs.json" file
 
-Author: Daniel García
+Author: Daniel Garcia
 Date: May 2018
 """
 #imports api

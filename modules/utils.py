@@ -1,7 +1,7 @@
 """
 Satellite utils
 
-Author: Daniel García
+Author: Daniel Garcia
 Date: May 2018
 """
 import requests, zipfile
