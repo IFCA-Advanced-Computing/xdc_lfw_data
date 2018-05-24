@@ -19,39 +19,36 @@ def satellite(request):
     print(request.json_body)
     data = request.json_body #Data is now a json object
     region = data['region']
-    inidate = data['inidate']
-    enddate = data['enddate']
+    sd = data['start_date'] 
+    ed = data['end_date']
+    #Check dates
+    try:
+      start_date = datetime.strptime(sd, "%d-%m-%Y").date()
+    except ValueError:
+      print("Not a valid date: '{0}'.".format(start_date))
+      return {'Error':'Invalid Initial date. Format dd-mm-YYYY'}
+
+    try:
+      end_date = datetime.strptime(ed, "%d-%m-%Y").date()
+    except ValueError:
+      print("Not a valid date: '{0}'.".format(end_date))
+      return {'Error':'Invalid End date. Format dd-mm-YYYY'}
+
     action = data['action']
     
     print(region)
     print(action)   
-    if region not in ['cdp','Sanabria','sanabria', 'cogotas', 'Cogotas']:
-      return {'Error':'Region not accepted'}
+    if region not in ['CdP','Sanabria','Cogotas']:
+      return {'Error':'Region not accepted. Accepted regions: CdP, Sanabria, Cogotas'}
         
-    #Check dates
-    try:
-      datetime.strptime(inidate, "%Y-%m-%d")
-    except ValueError:
-      print("Not a valid date: '{0}'.".format(inidate))
-      return {'Error':'Invalid Initial date'}
-    try:
-      datetime.strptime(enddate, "%Y-%m-%d")
-    except ValueError:
-      print("Not a valid date: '{0}'.".format(enddate))
-      return {'Error':'Invalid End date'}        
-       
     #Action management
     if action is not None:
       if action == 'cloud_coverage':
-        #TODO
-        sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
-        cloud_cov = clouds.cloud_coverage(sat_img)
-        return {'cloud_coverage': '0.5'}
+        json_cloud_coverage = clouds.cloud_coverage(start_date, end_date, region)
+        return json_cloud_coverage
       elif action == 'cloud_mask':
-        #TODO
-        sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
-        cloud_mask = clouds.cloud_mask(sat_img)
-        return {'cloud_mask': 'path/to/file'}
+        json_cloud_mask = clouds.cloud_mask(start_date, end_date, region)
+        return json_cloud_mask
       elif action == 'water_surface':
         #TODO
         sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
@@ -66,9 +63,9 @@ def satellite(request):
         meteo = meteo.get_meteo(inidate,enddate,region)
         print(meteo)
       else: 
-        return {'Error':'No action provided'}
+        return {'Error':'No valid action provided. Accepted actions: cloud_mask, cloud_coverage'}
     else: 
-      return {'Error':'No action provided'}
+      return {'Error':'No valid action provided. Accepted actions: cloud_mask, cloud_coverage'}
 
 if __name__ == '__main__':
     config = Configurator()

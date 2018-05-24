@@ -1,11 +1,10 @@
-import config
 import http.client
 import ssl
 import json
 import csv
 import xml.etree.cElementTree as ET
 from modules import metadata_gen
-import config
+from . import config
 
 """Lo primero que debemos hacer es obtener todas las estaciones para conocer su identificador 
 y asi buscar los resgistros historicos para la zona que queramos."""
