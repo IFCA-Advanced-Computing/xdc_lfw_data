@@ -74,16 +74,7 @@ def get_landsat8_raw(inidate,enddate,region):
             continue
        
         #except by file already downloaded
-        try:
-            with open(os.path.join(datasets_path, 'files.json')) as data_file:    
-                json.load(data_file)
-        except:
-            os.mkdir(datasets_path)
-            reservoir_dict = {"Sentinel-2": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []},
-                               "Landsat 8": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []}}
-            with open(os.path.join(datasets_path, 'files.json'), 'w') as outfile:
-                json.dump(reservoir_dict, outfile)
-                
+        utils.check_downloaded(datasets_path)
         with open(os.path.join(datasets_path, 'files.json')) as data_file:    
             downloaded_files = json.load(data_file)
         

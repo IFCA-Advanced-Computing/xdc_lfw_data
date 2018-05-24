@@ -4,16 +4,19 @@
 import os
 import json
 import numpy as np
-from netCDF4 import Dataset
-import datetime as dt
 
 from . import utils
-from . import config 
+from . import config
+from . import sentinel2
+from . import landsat8
 
-def cloud_coverage(region, files):
+def cloud_coverage(inidate, enddate, region):
     """ Given a satellite image, returns the cloud covarage
         image: file
     """
+    sentinel_files = sentinel2.get_sentinel2_raw(inidate,enddate,region)
+    landsat_files = landsat8.get_landsat8_raw(inidate,enddate,region)
+    
     datasets_path = config.satelite_info['data_path']
     
     #create csv data(headers)
@@ -22,7 +25,7 @@ def cloud_coverage(region, files):
     
     reservoir_path = os.path.join(datasets_path, region)
     #find cloud coverage in metadata
-    for f in files:
+    for f in sentinel_files+landsat_files:
         dir_path = os.path.join(reservoir_path, f)
 
         with open(os.path.join(dir_path, '{}.json'.format(f))) as data_file:    
@@ -35,16 +38,27 @@ def cloud_coverage(region, files):
 
     #save csv file
     np.savetxt(os.path.join(reservoir_path, '{}.csv'.format(region)), csv_data, fmt='%s', delimiter=",")
+    
+    #json
+    data = {'downloaded':{'sentinel 2': sentinel_files, 'landsat 8': landsat_files},
+            'action': os.path.join(reservoir_path, '{}.csv'.format(region))}
+    return data
 
 
-def sentinel_cloud_mask(region, files):
+def cloud_mask(inidate, enddate, region):
     """ Given a satellite image, returns the cloud mask
         image: netCDF file
     """
-    datasets_path = config.satelite_info['data_path']
     
-    #check if the cloud mask already done
-    for f in files:
+    sentinel_files = sentinel2.get_sentinel2_raw(inidate,enddate,region)
+    landsat_files = landsat8.get_landsat8_raw(inidate,enddate,region)
+    
+    datasets_path = config.satelite_info['data_path']
+    products = []
+    
+    #sentinel 2 cloud_mask
+    for f in sentinel_files:
+        #check if the cloud mask already done
         date_path = os.path.join(datasets_path, region, f)
         if 'Cloud.nc' in os.listdir(date_path):
             continue
@@ -64,34 +78,14 @@ def sentinel_cloud_mask(region, files):
         mask_cloud = mask_cloud + (mask_potential_cloud * (ndsi > -0.16)) # are passed to Step 2
         
         #create de netCDF4 file
-        ncfile = Dataset(os.path.join(date_path, "Cloud.nc"),"w", format='NETCDF4_CLASSIC') #'w' stands for write
+        utils.create_netCDF(date_path, mask_cloud, lat, lon)
         
-        ncfile.createDimension('lat', len(lat))
-        ncfile.createDimension('lon', len(lon))
-        
-        latitude = ncfile.createVariable('lat', 'f4', ('lat',))
-        longitude = ncfile.createVariable('lon', 'f4', ('lon',))  
-        Band1 = ncfile.createVariable('Band1', 'f4', ('lat', 'lon'))
-        
-        ncfile.description = "mask of clouds"
-        ncfile.history = "Created" + dt.datetime.today().strftime("%m/%d/%Y")
-        ncfile.source = "netCDF4 python module"
-        
-        latitude[:] = lat
-        longitude[:] = lon
-        Band1[:,:] = np.ones((len(lat), len(lon))) * mask_cloud * 255
+        #json
+        products.append('{}.Cloud.nc'.format(date_path))
     
-        ncfile.close
-
-
-def landsat_cloud_mask(region, files):
-    """ Given a satellite image, returns the cloud mask
-        image: netCDF file
-    """
-    datasets_path = config.satelite_info['data_path']
-    
-    #check if the cloud mask already done
-    for f in files:
+    #landsat 8 cloud mask
+    for f in landsat_files:
+        #check if the cloud mask already done
         date_path = os.path.join(datasets_path, region, f)
         if 'Cloud.nc' in os.listdir(date_path):
             continue
@@ -100,24 +94,16 @@ def landsat_cloud_mask(region, files):
         bands, lat, lon = utils.load_bands(date_path, band_list)
         
         #Clouds
-        cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
+        mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
         
         #create de netCDF4 file
-        ncfile = Dataset(os.path.join(date_path, "Cloud.nc"),"w", format='NETCDF4_CLASSIC') #'w' stands for write
+        utils.create_netCDF(date_path, mask_cloud, lat, lon)
         
-        ncfile.createDimension('lat', len(lat))
-        ncfile.createDimension('lon', len(lon))
+        #json
+        products.append('{}.Cloud.nc'.format(date_path))
         
-        latitude = ncfile.createVariable('lat', 'f4', ('lat',))
-        longitude = ncfile.createVariable('lon', 'f4', ('lon',))  
-        Band1 = ncfile.createVariable('Band1', 'f4', ('lat', 'lon'))
-        
-        ncfile.description = "mask of clouds"
-        ncfile.history = "Created" + dt.datetime.today().strftime("%m/%d/%Y")
-        ncfile.source = "netCDF4 python module"
-        
-        latitude[:] = lat
-        longitude[:] = lon
-        Band1[:,:] = np.ones((len(lat), len(lon))) * cloud * 255
+    #json
+    data = {'downloaded':{'sentinel 2': sentinel_files, 'landsat 8': landsat_files},
+            'action': products}
     
-        ncfile.close
+    return data

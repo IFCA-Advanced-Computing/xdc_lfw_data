@@ -1,7 +1,5 @@
 import argparse
 import datetime
-from modules import sentinel2
-from modules import landsat8
 from modules import clouds
 from modules import water
 
@@ -56,29 +54,18 @@ args = parser.parse_args()
 if args.action is not None:
     if args.action == 'cloud_coverage':
 
-        sentinel_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
-        landsat_img = landsat8.get_landsat8_raw(args.start_date,args.end_date,args.region)
-
-        list_files = sentinel_img+landsat_img
-        cloud_cov = clouds.cloud_coverage(args.region, list_files)
-
-        print(cloud_cov)
+        json_cloud_coverage = clouds.cloud_coverage(args.start_date, args.end_date, args.region)
+        print(json_cloud_coverage)
 
     elif args.action == 'cloud_mask':
 
-        sentinel_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
-        cloud_mask = clouds.sentinel_cloud_mask(args.region, sentinel_img)
+        json_cloud_mask = clouds.cloud_mask(args.start_date, args.end_date, args.region)
 
-        landsat_img = landsat8.get_landsat8_raw(args.start_date,args.end_date,args.region)
-        cloud_mask = clouds.landsat_cloud_mask(args.region, landsat_img)
-
-        print(cloud_mask)
+        print(json_cloud_mask)
 
     elif args.action == 'water_surface':
-        sat_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
-        water_sur = water.water_surface(sat_img)
-        print(water_sur)
+#        water_sur = water.water_surface(sat_img)
+        print(' in development. ')
     elif args.action == 'water_mask':
-        sat_img = sentinel2.get_sentinel2_raw(args.start_date,args.end_date,args.region)
-        water_mask = water.water_mask(sat_img)
-        print(water_mask)
+#        water_mask = water.water_mask(sat_img)
+        print(' in development. ')

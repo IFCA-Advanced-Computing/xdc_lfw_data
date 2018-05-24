@@ -11,6 +11,8 @@ import io
 import os
 from netCDF4 import Dataset
 import json
+import datetime as dt
+import numpy as np
 
 def download_zip(zip_file_url, output_path):
     """
@@ -44,6 +46,31 @@ def tiff_to_netCDF(files_path):
                 
         os.remove(file_path)
     
+def create_netCDF(path, mask, lat, lon):
+    """
+    Sub-function used on: cloud.cloud_mask.
+    Create a NetCDF file with mask_cloud
+    """
+    #create de netCDF4 file
+    ncfile = Dataset(os.path.join(path, "Cloud.nc"),"w", format='NETCDF4_CLASSIC') #'w' stands for write
+        
+    ncfile.createDimension('lat', len(lat))
+    ncfile.createDimension('lon', len(lon))
+        
+    latitude = ncfile.createVariable('lat', 'f4', ('lat',))
+    longitude = ncfile.createVariable('lon', 'f4', ('lon',))  
+    Band1 = ncfile.createVariable('Band1', 'f4', ('lat', 'lon'))
+        
+    ncfile.description = "mask of clouds"
+    ncfile.history = "Created" + dt.datetime.today().strftime("%m/%d/%Y")
+    ncfile.source = "netCDF4 python module"
+        
+    latitude[:] = lat
+    longitude[:] = lon
+    Band1[:,:] = np.ones((len(lat), len(lon))) * mask * 255
+    
+    ncfile.close    
+
 def check_corner(image, date_path, query_dict):
     """
     Download sample to check if it is a corner, and therefore the image is unusable.
@@ -96,12 +123,13 @@ def metadata_landsat_file(sat_list):
                         }
     return metadata_raw_files
 
-#def downloaded_data_file(datasets_path):
-#    try:
-#        with open(os.path.join(datasets_path, 'files.json')) as data_file:    
-#            json.load(data_file)
-#    except:
-#        reservoir_dict = {"Sentinel-2": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []},
-#                          "Landsat 8": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []}}
-#        with open(os.path.join(datasets_path, 'files.json'), 'w') as outfile:
-#                json.dump(reservoir_dict, outfile)
+def check_downloaded(datasets_path):
+    try:
+        with open(os.path.join(datasets_path, 'files.json')) as data_file:    
+            json.load(data_file)
+    except:
+        os.mkdir(datasets_path)
+        reservoir_dict = {"Sentinel-2": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []},
+                          "Landsat 8": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []}}
+        with open(os.path.join(datasets_path, 'files.json'), 'w') as outfile:
+                json.dump(reservoir_dict, outfile)
