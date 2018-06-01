@@ -3,7 +3,7 @@ import ssl
 import json
 import csv
 import xml.etree.cElementTree as ET
-from modules import metadata_gen
+from . import metadata_gen
 from . import config
 
 """Lo primero que debemos hacer es obtener todas las estaciones para conocer su identificador 

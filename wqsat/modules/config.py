@@ -9,3 +9,8 @@ download_datasets = './datasets'
 config_info = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 satelite_info ={'data_path':download_datasets, 'config_path':config_info}
+regions ={'regions': {
+"CdP": [[-2.830, 41.910], [-2.690, 41.910], [-2.690, 41.820], [-2.830, 41.820], [-2.830, 41.910]],
+"Sanabria": [[-6.741, 42.133], [-6.742, 42.107], [-6.694, 42.107], [-6.694, 42.134], [-6.741, 42.133]],
+"Cogotas": [[-4.11, 43.05], [-3.85, 43.05], [-3.85, 42.94], [-4.11, 42.94]]
+}}
