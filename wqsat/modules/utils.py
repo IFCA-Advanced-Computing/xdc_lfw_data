@@ -101,35 +101,31 @@ def load_bands(datepath, band_list):
     longitude = band.variables['lon'][:] # longitude array
     return band_dict, latitude, longitude
 
-def metadata_sentinel_file(sat_list):
+def metadata_file(mission, sat_list):
     """
     create a file with the metadata
     """
-    sentinel_metadata = {'id': sat_list.getInfo()[0]['id'],
-                          'file': sat_list.getInfo()[0]['properties']['DATATAKE_IDENTIFIER'],
-                          'cloud_coverage': sat_list.getInfo()[0]['properties']['CLOUD_COVERAGE_ASSESSMENT'],
-                          'SENSING_ORBIT_DIRECTION': sat_list.getInfo()[0]['properties']['SENSING_ORBIT_DIRECTION']
-                        }
-    return sentinel_metadata
+    if mission == 'Sentinel-2':
+        metadata = {'id': sat_list.getInfo()[0]['id'],
+                    'file': sat_list.getInfo()[0]['properties']['DATATAKE_IDENTIFIER'],
+                    'cloud_coverage': sat_list.getInfo()[0]['properties']['CLOUD_COVERAGE_ASSESSMENT'],
+                    'SENSING_ORBIT_DIRECTION': sat_list.getInfo()[0]['properties']['SENSING_ORBIT_DIRECTION']
+                    }
+    elif mission == 'Landsat8':
+        metadata = {'id': sat_list.getInfo()[0]['id'],
+                    'date': sat_list.getInfo()[0]['properties']['DATE_ACQUIRED'],
+                    'cloud_coverage': sat_list.getInfo()[0]['properties']['CLOUD_COVER'],
+                    'category': sat_list.getInfo()[0]['properties']['COLLECTION_CATEGORY']
+                    }
+    return metadata
 
-def metadata_landsat_file(sat_list):
-    """
-    create a file with the metadata
-    """
-    metadata_raw_files = {'id': sat_list.getInfo()[0]['id'],
-                          'date': sat_list.getInfo()[0]['properties']['DATE_ACQUIRED'],
-                          'cloud_coverage': sat_list.getInfo()[0]['properties']['CLOUD_COVER'],
-                          'category': sat_list.getInfo()[0]['properties']['COLLECTION_CATEGORY']
-                        }
-    return metadata_raw_files
-
-def check_downloaded(datasets_path):
+def check_file(path):
     try:
-        with open(os.path.join(datasets_path, 'files.json')) as data_file:    
+        with open(os.path.join(path, 'downloaded_files.json')) as data_file:    
             json.load(data_file)
     except:
-        os.mkdir(datasets_path)
-        reservoir_dict = {"Sentinel-2": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []},
-                          "Landsat 8": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []}}
-        with open(os.path.join(datasets_path, 'files.json'), 'w') as outfile:
-                json.dump(reservoir_dict, outfile)
+        os.mkdir(path)
+        dictionary = {"Sentinel-2": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []},
+                    "Landsat 8": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []}}
+        with open(os.path.join(path, 'downloaded_files.json'), 'w') as outfile:                
+            json.dump(dictionary, outfile)

@@ -25,7 +25,6 @@ def get_sentinel2_raw(inidate,enddate,region):
     enddate: datetime
     region: Array with 4 coordinates
     """
-    main_dir = config.satelite_info['config_path']
     datasets_path = config.satelite_info['data_path']
     reservoir_path = os.path.join(datasets_path, region)
     files = []
@@ -37,8 +36,7 @@ def get_sentinel2_raw(inidate,enddate,region):
                 }
     
     # Add reservoir coordinates to metadata
-    print(config.regions['regions'])
-    metadata['coord'] = config.regions['regions'] 
+    metadata['coord'] = config.regions['regions'][region] 
      
     # Download
     query_dict = {'scale': metadata['scale'],
@@ -63,15 +61,15 @@ def get_sentinel2_raw(inidate,enddate,region):
 
             #list of the files and metadata files
             files.append(id_fecha)
-            file_metadata = utils.metadata_sentinel_file(sat_list)
+            file_metadata = utils.metadata_file('Sentinel-2', sat_list)
 
         except:
             print ('No images found for range {} - {}'.format(d1, d2))
             continue
         
         #except by file already downloaded
-        utils.check_downloaded(datasets_path)
-        with open(os.path.join(datasets_path, 'files.json')) as data_file:    
+        utils.check_file(datasets_path)
+        with open(os.path.join(datasets_path, 'downloaded_files.json')) as data_file:    
             downloaded_files = json.load(data_file)
         
         if id_fecha in downloaded_files['Sentinel-2'][region]:
@@ -94,15 +92,11 @@ def get_sentinel2_raw(inidate,enddate,region):
         
         # Save the new list of files
         downloaded_files['Sentinel-2'][region].append(id_fecha)
-        with open(os.path.join(datasets_path, 'files.json'), 'w') as outfile:
+        with open(os.path.join(datasets_path, 'downloaded_files.json'), 'w') as outfile:
             json.dump(downloaded_files, outfile)
     
         # Save sentinel-2 file metadata
         with open(os.path.join(date_path, '{}.json'.format(id_fecha)), 'w') as outfile:
             json.dump(file_metadata, outfile)
-    
-    # Save searh metadata
-    with open(os.path.join(reservoir_path, '{}.json'.format(region)), 'w') as outfile:
-        json.dump(metadata, outfile)
         
     return files
