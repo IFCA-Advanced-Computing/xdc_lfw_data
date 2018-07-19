@@ -77,7 +77,6 @@ def cloud_mask(inidate, enddate, region):
         mask_cloud = bands['B4'] > 0.25 # Clouds , are passed to step2
         mask_cloud = mask_cloud + (mask_potential_cloud * (ndsi > -0.16)) # are passed to Step 2
         
-        print (mask_cloud)
         #create de netCDF4 file
         utils.create_netCDF(date_path, mask_cloud, lat, lon, 'Cloud')
         
@@ -96,8 +95,7 @@ def cloud_mask(inidate, enddate, region):
         
         #Clouds
         mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
-        
-        print (mask_cloud)
+
         #create de netCDF4 file
         utils.create_netCDF(date_path, mask_cloud, lat, lon, 'Cloud')
         

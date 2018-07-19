@@ -64,7 +64,6 @@ def create_water_mask(inidate, enddate, region):
         
         lon, lat, water = water_mask("Sentinel2", date_path)
         
-        print (water)
         #create de netCDF4 file
         utils.create_netCDF(date_path, water, lat, lon, 'Water')
         
@@ -80,7 +79,6 @@ def create_water_mask(inidate, enddate, region):
         
         lon, lat, water = water_mask("Landsat8", date_path)
         
-        print (water)
         #create de netCDF4 file
         utils.create_netCDF(date_path, water, lat, lon, 'Water')
         
@@ -141,9 +139,3 @@ def water_surface(inidate, enddate, region):
             'action': os.path.join(reservoir_path, '{}.csv'.format(region))}
     
     return data
-
-#sentinel_files = ['GS2A_20170119T110351_008242_N02.04', 'GS2A_20170129T110311_008385_N02.04']
-#landsat_files = ['2017-01-01', '2017-01-17']
-#region = "CdP"
-#create_water_mask(sentinel_files, landsat_files, region)
-#config.satelite_info['data_path']
