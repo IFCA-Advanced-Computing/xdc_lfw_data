@@ -55,10 +55,13 @@ def download_zip(zip_file_url, output_path):
         zip_file_url : earth engine url of file
         output_path : path to download and save
     """
-    r = requests.get(zip_file_url, stream=True)
-    z = zipfile.ZipFile(io.BytesIO(r.content))
-    z.extractall(output_path)
-    
+    try:
+        r = requests.get(zip_file_url, stream=True)
+        print(r.status_code)
+        z = zipfile.ZipFile(io.BytesIO(r.content))
+        z.extractall(output_path)
+    except requests.exceptions.RequestException as e:  # This is the correct syntax
+       print(e) 
     
 def tiff_to_netCDF(files_path):
     """
@@ -163,7 +166,8 @@ def check_file(path):
         with open(os.path.join(path, 'downloaded_files.json')) as data_file:    
             json.load(data_file)
     except:
-        os.mkdir(path)
+        if not (os.path.isdir(path)):
+            os.mkdir(path)
         dictionary = {"Sentinel-2": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []},
                     "Landsat 8": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []}}
         with open(os.path.join(path, 'downloaded_files.json'), 'w') as outfile:                
