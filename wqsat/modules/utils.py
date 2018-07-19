@@ -14,6 +14,39 @@ import json
 import datetime as dt
 import numpy as np
 
+
+def convert_lat_long(lon, lat, mx=None, my=None):
+    """
+    Convert degrees to meters
+    Link : https://en.wikipedia.org/wiki/Geographic_coordinate_system#Expressing_latitude_and_longitude_as_linear_units    
+
+    Parameters
+    ----------
+    lon, lat : np.array, shape(N)
+        Arrays of latitudes and longitudes (in degrees)
+    mx, my : float
+        Origin of the map (in degrees).
+        Default is np.amin(lon), np.amin(lat)
+        
+    Returns
+    -------
+    lon, lat : np.array, shape(N)
+        Arrays of latitudes and longitudes (in meters)
+    """
+    if mx is None: mx = np.amin(lon)
+    if my is None: my = np.amin(lat)
+    
+    def cos(x): return np.cos(np.radians(x))
+
+    mean_lat = np.mean(lat)    
+    x_factor = 111132.92 - 559.82 * cos(2*mean_lat) + 1.175 * cos(4*mean_lat) - 0.0023 * cos(6*mean_lat)
+    y_factor = 111412.84 * cos(mean_lat) - 93.5 * cos(3*mean_lat) + 0.118 * cos(5*mean_lat)
+    
+    x = (lon - mx) * x_factor
+    y = (lat - my) * y_factor
+    return x, y
+
+
 def download_zip(zip_file_url, output_path):
     """
     Sub-function used on: get_sentinel2_raw() and get_landsat8_raw()
@@ -25,6 +58,7 @@ def download_zip(zip_file_url, output_path):
     r = requests.get(zip_file_url, stream=True)
     z = zipfile.ZipFile(io.BytesIO(r.content))
     z.extractall(output_path)
+    
     
 def tiff_to_netCDF(files_path):
     """
@@ -46,13 +80,14 @@ def tiff_to_netCDF(files_path):
                 
         os.remove(file_path)
     
-def create_netCDF(path, mask, lat, lon):
+    
+def create_netCDF(path, mask, lat, lon, name):
     """
     Sub-function used on: cloud.cloud_mask.
-    Create a NetCDF file with mask_cloud
+    Create a NetCDF file with mask: clouds, water, ...
     """
     #create de netCDF4 file
-    ncfile = Dataset(os.path.join(path, "Cloud.nc"),"w", format='NETCDF4_CLASSIC') #'w' stands for write
+    ncfile = Dataset(os.path.join(path, "{}.nc".format(name)),"w", format='NETCDF4_CLASSIC') #'w' stands for write
         
     ncfile.createDimension('lat', len(lat))
     ncfile.createDimension('lon', len(lon))
@@ -61,7 +96,7 @@ def create_netCDF(path, mask, lat, lon):
     longitude = ncfile.createVariable('lon', 'f4', ('lon',))  
     Band1 = ncfile.createVariable('Band1', 'f4', ('lat', 'lon'))
         
-    ncfile.description = "mask of clouds"
+    ncfile.description = "mask"
     ncfile.history = "Created" + dt.datetime.today().strftime("%m/%d/%Y")
     ncfile.source = "netCDF4 python module"
         
@@ -70,6 +105,7 @@ def create_netCDF(path, mask, lat, lon):
     Band1[:,:] = np.ones((len(lat), len(lon))) * mask * 255
     
     ncfile.close    
+
 
 def check_corner(image, date_path, query_dict):
     """
@@ -88,6 +124,7 @@ def check_corner(image, date_path, query_dict):
     
     return corner 
 
+
 def load_bands(datepath, band_list):
     """
     Retrieve a dict of band arrays from a date path
@@ -99,7 +136,8 @@ def load_bands(datepath, band_list):
     
     latitude = band.variables['lat'][:] # latitude array
     longitude = band.variables['lon'][:] # longitude array
-    return band_dict, latitude, longitude
+    return longitude, latitude, band_dict
+
 
 def metadata_file(mission, sat_list):
     """
@@ -119,6 +157,7 @@ def metadata_file(mission, sat_list):
                     }
     return metadata
 
+
 def check_file(path):
     try:
         with open(os.path.join(path, 'downloaded_files.json')) as data_file:    
@@ -129,3 +168,15 @@ def check_file(path):
                     "Landsat 8": {"CdP": [], "Sanabria": [], "Castro de las Cogotas": []}}
         with open(os.path.join(path, 'downloaded_files.json'), 'w') as outfile:                
             json.dump(dictionary, outfile)
+     
+        
+def get_pixel_area(datepath, band):
+    """
+    Compute the new pixel area after the lat_long --> meters conversion
+    """
+    
+    lon, lat, data = load_bands(datepath, band)
+    x, y = convert_lat_long(lon, lat)
+    scale_x = np.mean(x[1:]- x[:-1])
+    scale_y = np.mean(y[1:]- y[:-1])
+    return scale_x * scale_y

@@ -60,12 +60,14 @@ if args.action is not None:
     elif args.action == 'cloud_mask':
 
         json_cloud_mask = clouds.cloud_mask(args.start_date, args.end_date, args.region)
-
         print(json_cloud_mask)
 
     elif args.action == 'water_surface':
-#        water_sur = water.water_surface(sat_img)
-        print(' in development. ')
+        
+        json_water_surface = water.water_surface(args.start_date, args.end_date, args.region)
+        print(json_water_surface)
+    
     elif args.action == 'water_mask':
-#        water_mask = water.water_mask(sat_img)
-        print(' in development. ')
+        
+        json_water_mask = water.create_water_mask(args.start_date, args.end_date, args.region)
+        print(json_water_mask)

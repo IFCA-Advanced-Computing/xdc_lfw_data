@@ -18,12 +18,12 @@ def cloud_coverage(inidate, enddate, region):
     landsat_files = landsat8.get_landsat8_raw(inidate,enddate,region)
     
     datasets_path = config.satelite_info['data_path']
+    reservoir_path = os.path.join(datasets_path, region)
     
     #create csv data(headers)
     csv_headers = ['file', 'cloud_coverage']
     csv_data =[csv_headers]
     
-    reservoir_path = os.path.join(datasets_path, region)
     #find cloud coverage in metadata
     for f in sentinel_files+landsat_files:
         dir_path = os.path.join(reservoir_path, f)
@@ -64,7 +64,7 @@ def cloud_mask(inidate, enddate, region):
             continue
     
         band_list = ['B3', 'B4', 'B11']
-        bands, lat, lon = utils.load_bands(date_path, band_list)
+        lon, lat, bands = utils.load_bands(date_path, band_list)
     
         # Divide values by 10000 if bands downloaded from Google Earth API
         for k, v in bands.items():
@@ -77,8 +77,9 @@ def cloud_mask(inidate, enddate, region):
         mask_cloud = bands['B4'] > 0.25 # Clouds , are passed to step2
         mask_cloud = mask_cloud + (mask_potential_cloud * (ndsi > -0.16)) # are passed to Step 2
         
+        print (mask_cloud)
         #create de netCDF4 file
-        utils.create_netCDF(date_path, mask_cloud, lat, lon)
+        utils.create_netCDF(date_path, mask_cloud, lat, lon, 'Cloud')
         
         #json
         products.append('{}.Cloud.nc'.format(date_path))
@@ -91,13 +92,14 @@ def cloud_mask(inidate, enddate, region):
             continue
         
         band_list = ['B1', 'B2', 'B3', 'B4', 'B5']
-        bands, lat, lon = utils.load_bands(date_path, band_list)
+        lon, lat, bands = utils.load_bands(date_path, band_list)
         
         #Clouds
         mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
         
+        print (mask_cloud)
         #create de netCDF4 file
-        utils.create_netCDF(date_path, mask_cloud, lat, lon)
+        utils.create_netCDF(date_path, mask_cloud, lat, lon, 'Cloud')
         
         #json
         products.append('{}.Cloud.nc'.format(date_path))
