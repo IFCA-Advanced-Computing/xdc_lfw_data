@@ -10,3 +10,4 @@ nc
 netCDF4
 imageio
 scikit-image
+xmltodict

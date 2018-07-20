@@ -104,14 +104,16 @@ def get_sentinel2_raw(inidate,enddate,region):
             json.dump(file_metadata, outfile)
     
         # Onedata metadata attachment
-        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgMDRmMGQxODRmMTBmODAxN2ZkNTNkNGJlYWIyNjc3NTkKMDAxYWNpZCB00aW1lIDwgMTU2MzM00NDg00MQowMDJmc2lnbmF00dXJlIGy97Y8H4rGIxCMYsJSHQg1v6BpLGAwnDL01EE6AFAs1BCg', 'Content-type' : 'application/json'}
-        try:
-            print(file_metadata)
-            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + region + '/' + '{}'.format(id_fecha))
-            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + region + '/' + '{}'.format(id_fecha),headers=header_json,data=json.dumps(file_metadata))
-            print(r.text)
-        except requests.exceptions.RequestException as e:
-            print(e)
-            continue
+        if (config.onedata_mode == 1):
+            #TODO change token
+            header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgMDRmMGQxODRmMTBmODAxN2ZkNTNkNGJlYWIyNjc3NTkKMDAxYWNpZCB00aW1lIDwgMTU2MzM00NDg00MQowMDJmc2lnbmF00dXJlIGy97Y8H4rGIxCMYsJSHQg1v6BpLGAwnDL01EE6AFAs1BCg', 'Content-type' : 'application/json'}
+            try:
+                print(file_metadata)
+                print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + region + '/' + '{}'.format(id_fecha))
+                r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + region + '/' + '{}'.format(id_fecha),headers=header_json,data=json.dumps(file_metadata))
+                print(r.text)
+            except requests.exceptions.RequestException as e:
+                print(e)
+                continue
         
     return files

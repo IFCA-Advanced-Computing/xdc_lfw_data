@@ -52,12 +52,21 @@ def datosEstacion(key,api,fechaIni,fechaFin,estacion,general_name,params):
         salidaInformacion.append([estacion,datosEstacion])
         for resultados in datosEstacion:
             #print(resultados['fecha'],":",resultados['tmed'],"C")
-            spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
+            try:
+                spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
+            except:
+                print('punch')
     conn.close()
     return salidaInformacion
 
 def get_meteo(startDate, endDate, region):
-    general_name = region+"_"+startDate.strftime('%Y-%m-%d')+"_"+endDate.strftime('%Y-%m-%d')
+    #onedata mode
+    if (config.onedata_mode == 1):
+        datasets_path = '/onedata/' + config.onedata_user + '/' + config.onedata_space + '/' + config.download_datasets
+    else:
+        datasets_path = '.' + config.download_datasets
+   
+    general_name = datasets_path + '/' + region + '/' + "meteo_"+startDate.strftime('%Y-%m-%d')+"_"+endDate.strftime('%Y-%m-%d')
     METEO_API_TOKEN=config.METEO_API_TOKEN
     METEO_API_URL=config.METEO_API_URL
     stations = buscarEstaciones(METEO_API_TOKEN,METEO_API_URL,region,region) #TODO add lat/lon
