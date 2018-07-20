@@ -51,21 +51,21 @@ def satellite(request):
         return json_cloud_mask
       elif action == 'water_surface':
         #TODO
-        sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
+        sat_img = sentinel2.get_sentinel2_raw(start_date,end_date,region)
         water_sur = water.water_surface(sat_img)
         return {'water_surface': '1000'}
       elif action == 'water_mask':
         #TODO
-        sat_img = sentinel2.get_sentinel2_raw(inidate,enddate,region)
+        sat_img = sentinel2.get_sentinel2_raw(start_date,end_date,region)
         water_mask = water.water_mask(sat_img)
         return {'water_mask': 'path_to_file'}
       elif action == 'meteo':
-        meteo = meteo.get_meteo(inidate,enddate,region)
-        print(meteo)
+        meteo_data = meteo.get_meteo(start_date,end_date,region)
+        print(meteo_data)
       else: 
-        return {'Error':'No valid action provided. Accepted actions: cloud_mask, cloud_coverage'}
+        return {'Error':'No valid action provided. Accepted actions: cloud_mask, cloud_coverage, meteo'}
     else: 
-      return {'Error':'No valid action provided. Accepted actions: cloud_mask, cloud_coverage'}
+      return {'Error':'No valid action provided. Accepted actions: cloud_mask, cloud_coverage, meteo'}
 
 if __name__ == '__main__':
     config = Configurator()

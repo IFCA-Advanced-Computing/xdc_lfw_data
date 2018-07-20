@@ -1,4 +1,10 @@
 import xml.etree.cElementTree as ET
+import xmltodict 
+import os
+import json
+import requests
+
+from . import config
 
 def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,northBounding,southBounding,params):
     
@@ -51,8 +57,19 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
 
     tree = ET.ElementTree(eml)
 
-    #Escribimos los datos en un archivo
+    #Escribimos los datos en un archivo or onedata attachement
+
     tree.write(title+".xml",encoding='UTF-8', xml_declaration=True)
+    
+    if (config.onedata_mode == 1):
+        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgMDRmMGQxODRmMTBmODAxN2ZkNTNkNGJlYWIyNjc3NTkKMDAxYWNpZCB00aW1lIDwgMTU2MzM00NDg00MQowMDJmc2lnbmF00dXJlIGy97Y8H4rGIxCMYsJSHQg1v6BpLGAwnDL01EE6AFAs1BCg', 'Content-type' : 'application/json'}
+        try:
+            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + geographicDesc + '/' + "meteo_"+dateIni.strftime('%Y-%m-%d')+"_"+dateEnd.strftime('%Y-%m-%d') + '.csv')
+            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + geographicDesc + '/' + "meteo_"+dateIni.strftime('%Y-%m-%d')+"_"+dateEnd.strftime('%Y-%m-%d') + '.csv',headers=header_json,data=eml_to_json(title+".xml"))
+            print(r.text)
+            os.remove(title+".xml")
+        except requests.exceptions.RequestException as e:
+            print(e)
     #print(tree)
 
 def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding,params):
@@ -106,8 +123,18 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
 
     tree = ET.ElementTree(eml)
 
-    #Escribimos los datos en un archivo
+    #Escribimos los datos en un archivo or onedata attachement
     tree.write(title+".xml",encoding='UTF-8', xml_declaration=True)
+    
+    if (config.onedata_mode == 1):
+        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgMDRmMGQxODRmMTBmODAxN2ZkNTNkNGJlYWIyNjc3NTkKMDAxYWNpZCB00aW1lIDwgMTU2MzM00NDg00MQowMDJmc2lnbmF00dXJlIGy97Y8H4rGIxCMYsJSHQg1v6BpLGAwnDL01EE6AFAs1BCg', 'Content-type' : 'application/json'}
+        try:
+            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + geographicDesc + '/' + "meteo_" + dateIni + "_"+dateEnd + '.csv')
+            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + geographicDesc + '/' + "meteo_" + dateIni + "_" + dateEnd + '.csv',headers=header_json,data=eml_to_json(title+".xml"))
+            print(r.text)
+            os.remove(title+".xml")
+        except requests.exceptions.RequestException as e:
+            print(e)
     #print(tree)
 
 def file_block_csv(title,params,parent):
@@ -153,3 +180,9 @@ def attribute_block_csv(params,dataTable):
             ET.SubElement(attribute,"storageType").text="string"
 
     return dataTable
+
+def eml_to_json(xml_file):
+    with open(xml_file, "rb") as f:
+        o = xmltodict.parse(f, xml_attribs=True)
+    result = json.dumps(o)
+    return result
