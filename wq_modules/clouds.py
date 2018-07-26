@@ -4,18 +4,20 @@
 import os
 import json
 import numpy as np
+from datetime import datetime
 
-from . import utils
-from . import config
-from . import sentinel2
-from . import landsat8
+from wq_modules import utils
+from wq_modules import config
+from wq_modules import sentinel2
+from wq_modules import landsat8
 
 def cloud_coverage(inidate, enddate, region):
     """ Given a satellite image, returns the cloud covarage
         image: file
+        input
     """
-    sentinel_files = sentinel2.get_sentinel2_raw(inidate,enddate,region)
-    landsat_files = landsat8.get_landsat8_raw(inidate,enddate,region)
+    sentinel_files = sentinel2.get_sentinel2_raw(inidate.date(),enddate.date(),region)
+    landsat_files = landsat8.get_landsat8_raw(inidate.date(),enddate.date(),region)
     
     datasets_path = config.satelite_info['data_path']
     reservoir_path = os.path.join(datasets_path, region)

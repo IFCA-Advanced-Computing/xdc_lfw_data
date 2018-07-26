@@ -4,7 +4,7 @@ import os
 import json
 import requests
 
-from . import config
+from wq_modules import config
 
 def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,northBounding,southBounding,params):
     

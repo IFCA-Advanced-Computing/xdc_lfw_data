@@ -3,8 +3,8 @@ import ssl
 import json
 import csv
 import xml.etree.cElementTree as ET
-from . import metadata_gen
-from . import config
+from wq_modules import metadata_gen
+from wq_modules import config
 
 """Lo primero que debemos hacer es obtener todas las estaciones para conocer su identificador 
 y asi buscar los resgistros historicos para la zona que queramos."""

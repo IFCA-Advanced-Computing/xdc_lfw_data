@@ -10,10 +10,10 @@ from skimage import filters
 import os
 import numpy as np
 
-from . import utils
-from . import config
-from . import sentinel2
-from . import landsat8
+from wq_modules import utils
+from wq_modules import config
+from wq_modules import sentinel2
+from wq_modules import landsat8
 
 
 def water_mask(platform, date_path):

@@ -1,10 +1,11 @@
-from . import sentinel2 as s2
-from . import clouds
-from . import water
-from . import config
-from . import metadata_gen
-from . import meteo
-from . import config
+from wq_modules import sentinel2 as s2
+from wq_modules import clouds
+from wq_modules import water
+from wq_modules import config
+from wq_modules import metadata_gen
+from wq_modules import meteo
+from wq_modules import config
+from wq_modules import tasks
 
 def get_sentinel2_raw(inidate,enddate,region):
     return s2.get_sentinel2_raw(inidate,enddate,region)

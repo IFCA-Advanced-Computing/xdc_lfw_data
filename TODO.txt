@@ -1,0 +1,2 @@
+Create initial configuration to create database, user, password from the configuration file (in setup)
+Create service
