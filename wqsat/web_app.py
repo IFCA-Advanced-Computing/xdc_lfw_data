@@ -1,15 +1,11 @@
 #!/usr/bin/python
 from datetime import datetime
-from wq_modules import sentinel2
-from wq_modules import clouds
-from wq_modules import water
-from wq_modules import meteo
 from wq_modules import tasks
 from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
 from pyramid.response import Response
 from pyramid.view import view_config
-from celery.task import task
+#from celery.task import task
 
 import json
 import MySQLdb
@@ -51,8 +47,8 @@ def satellite(request):
         json_cloud_coverage = tasks.cloud_coverage.delay(start_date, end_date, region)
         return {'request_id' : json_cloud_coverage.id}
       elif action == 'cloud_mask':
-        json_cloud_mask = clouds.cloud_mask(start_date, end_date, region)
-        return json_cloud_mask
+        json_cloud_mask = tasks.cloud_mask.delay(start_date, end_date, region)
+        return {'request_id' : json_cloud_mask.id}
       elif action == 'water_surface':
         #TODO
         sat_img = sentinel2.get_sentinel2_raw(start_date,end_date,region)
@@ -64,8 +60,8 @@ def satellite(request):
         water_mask = water.water_mask(sat_img)
         return {'water_mask': 'path_to_file'}
       elif action == 'meteo':
-        meteo_data = meteo.get_meteo(start_date,end_date,region)
-        print(meteo_data)
+        meteo_data = tasks.get_meteo.delay(start_date, end_date, region)
+        return {'request_id' : meteo_data.id}
       else: 
         return {'Error':'No valid action provided. Accepted actions: cloud_mask, cloud_coverage, meteo'}
     else: 

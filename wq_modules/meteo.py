@@ -75,4 +75,4 @@ def get_meteo(startDate, endDate, region):
     params = ["ID","Date","Temp"] #TODO not hardocodding
     tt=datosEstacion(METEO_API_TOKEN,METEO_API_URL,startDate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC",endDate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC",estacion['indicativo'],general_name,params)
     metadata_gen.metadata_gen(general_name,startDate.strftime('%Y-%m-%d'),endDate.strftime('%Y-%m-%d'),region,"-3.43","41.33",params)
-    return "done"
+    return {"Done": "True"}
