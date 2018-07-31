@@ -7,6 +7,5 @@ rabbitmq-server celery mysql-server libmysqlclient-dev
 
 Registration required for external data:
 
-https://home.openweathermap.org/users/sign_up
-
+https://opendata.aemet.es
  
