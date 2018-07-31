@@ -31,16 +31,16 @@ def cloud_coverage(start_date, end_date, region):
     logger = get_task_logger(__name__)
     logger.info("Adding %s + %s" % (start_date, end_date))
     result = clouds.cloud_coverage(datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S'), datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S'), region)
-    return {'request_id':result.id}
+    return result
 @app.task
 def cloud_mask(start_date, end_date, region):
     logger = get_task_logger(__name__)
     logger.info("Adding %s + %s" % (start_date, end_date))
     result = clouds.cloud_mask(datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S'), datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S'), region)
-    return {'request_id':result.id}
+    return result
 @app.task
 def get_meteo(start_date, end_date, region):
     logger = get_task_logger(__name__)
     logger.info("Adding %s + %s" % (start_date, end_date))
     result = meteo.get_meteo(datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S'), datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S'), region)
-    return {'request_id':result.id}    
+    return result    

@@ -18,6 +18,7 @@ import http.client
 import ssl
 import json
 import csv
+import datetime
 import xml.etree.cElementTree as ET
 from wq_modules import metadata_gen
 from wq_modules import config
@@ -64,8 +65,8 @@ def datosEstacion(key,api,start_date,end_date,station,general_name,params):
         spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
         spamwriter.writerow(params)
         delta = end_date-start_date
-        if (delta <31):
-            req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date+"/fechafin/"+end_date+"/estacion/"+station+"/?api_key="+key
+        if (delta.days <31):
+            req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+end_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+station+"/?api_key="+key
             print(req)
             conn.request("GET",req, headers=headers)
             res = conn.getresponse()
@@ -84,9 +85,9 @@ def datosEstacion(key,api,start_date,end_date,station,general_name,params):
                     print('punch')
             conn.close()
         else:
-            temp_end_date = start_date + timedelta(days=30)
+            temp_end_date = start_date + datetime.timedelta(days=30)
             while(temp_end_date < end_date):
-                req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date+"/fechafin/"+temp_end_date+"/estacion/"+station+"/?api_key="+key
+                req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+temp_end_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+station+"/?api_key="+key
                 print(req)
                 conn.request("GET",req, headers=headers)
                 res = conn.getresponse()
@@ -105,9 +106,9 @@ def datosEstacion(key,api,start_date,end_date,station,general_name,params):
                         print('punch')
                 conn.close()
                 start_date = temp_end_date
-                temp_end_date = start_date + timedelta(days=30)
+                temp_end_date = start_date + datetime.timedelta(days=30)
             
-            req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date+"/fechafin/"+end_date+"/estacion/"+station+"/?api_key="+key
+            req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+end_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+station+"/?api_key="+key
             print(req)
             conn.request("GET",req, headers=headers)
             res = conn.getresponse()
@@ -128,24 +129,31 @@ def datosEstacion(key,api,start_date,end_date,station,general_name,params):
     csvfile.close()
     return salidaInformacion
 
-def get_meteo(startDate, endDate, region):
+def get_meteo(start_date, end_date, region):
     #onedata mode
     if (config.onedata_mode == 1):
         datasets_path = '/onedata/' + config.onedata_user + '/' + config.onedata_space + '/' + config.download_datasets
     else:
         datasets_path = '.' + config.download_datasets
    
-    general_name = datasets_path + '/' + region + '/' + "meteo_"+startDate.strftime('%Y-%m-%d')+"_"+endDate.strftime('%Y-%m-%d')
+    general_name = datasets_path + '/' + region + '/' + "meteo_"+start_date.strftime('%Y-%m-%d')+"_"+end_date.strftime('%Y-%m-%d')
     METEO_API_TOKEN=config.METEO_API_TOKEN
     METEO_API_URL=config.METEO_API_URL
 
     #Get Latitude, Longitude
     coords = config.regions['regions'][region]
-    lat = (max(coords[1]) + min(coords[1]))/2
-    lon = (max(coords[0]) + min(coords[0]))/2
+    lon = 0
+    for l in coords:
+        lon = lon + l[0]
+    lon = lon/len(coords)
+    lat = 0
+    for l in coords:
+        lat = lat + l[1]
+    lat = lat/len(coords)
+    print("Lat: %s Lon: %s" % (lat,lon))
     station = find_station(METEO_API_TOKEN,METEO_API_URL,lat,lon) #TODO add lat/lon
     print(station)
-    params = ["ID","Date","Temp"] #TODO not hardocodding
-    tt=datosEstacion(METEO_API_TOKEN,METEO_API_URL,startDate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC",endDate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC",station,general_name,params)
-    metadata_gen.metadata_gen(general_name,startDate.strftime('%Y-%m-%d'),endDate.strftime('%Y-%m-%d'),region,"-3.43","41.33",params)
-    return {"Done": "True"}
+    params = ["ID","Date","Temp"] #TODO add wind, prec
+    tt=datosEstacion(METEO_API_TOKEN,METEO_API_URL,start_date,end_date,station,general_name,params)
+    metadata_gen.metadata_gen(general_name,start_date.strftime('%Y-%m-%d'),end_date.strftime('%Y-%m-%d'),region,str(lat),str(lon),params)
+    return {"output": general_name}
