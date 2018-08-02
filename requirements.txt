@@ -2,15 +2,13 @@
 # of appearance. Changing the order has an impact on the overall integration
 # process, which may cause wedges in the gate later.
 pbr>=1.8
-
 enum34
-flask-restplus
+pyramid
 werkzeug
-nc
 netCDF4
 imageio
 scikit-image
 xmltodict
 sqlalchemy
-MySQLdb
+mysqlclient
 celery

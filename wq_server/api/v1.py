@@ -1,11 +1,7 @@
 #!/usr/bin/python
 from datetime import datetime
 from wq_modules import tasks
-from wsgiref.simple_server import make_server
-from pyramid.config import Configurator
-from pyramid.response import Response
 from pyramid.view import view_config
-#from celery.task import task
 
 import json
 import MySQLdb
@@ -84,17 +80,3 @@ def status(request):
     cursor.execute(sql)
     data=cursor.fetchall()
     return {'status': data[0][0]}
-
-    
-if __name__ == '__main__':
-    config = Configurator()
-
-    config.add_route('satellite', '/satellite')
-    config.add_route('status', '/status')
-
-    config.add_view(satellite, route_name='satellite', renderer='json')
-    config.add_view(status, route_name='status', renderer='json')
-
-    app = config.make_wsgi_app()
-    server = make_server('0.0.0.0', 6543, app)
-    server.serve_forever()

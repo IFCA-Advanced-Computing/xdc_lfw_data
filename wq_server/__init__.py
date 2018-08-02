@@ -16,7 +16,6 @@
 
 import pbr.version
 import sys
-sys.path.insert(0, "./coord_reservoirs.json")
 
 __version__ = pbr.version.VersionInfo(
     'xdc_lfw_data').version_string()

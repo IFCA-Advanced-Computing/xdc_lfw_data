@@ -23,9 +23,7 @@ import json
 from datetime import datetime
 
 app = Celery('tasks',broker='amqp://localhost//')
-app.conf.update(
-    result_backend='db+mysql://xdc:data$$cloud18@localhost/tasks'
-)
+
 @app.task
 def cloud_coverage(start_date, end_date, region):
     logger = get_task_logger(__name__)

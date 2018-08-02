@@ -13,6 +13,13 @@
 
 import setuptools
 
+with open('requirements.txt') as f:
+    reqs = f.read().splitlines()
+
+print('###############################\n'
+       '[!!!] NOTICE: To run this app, you need to install the following packages: rabbitmq-server celery mysql-server libmysqlclient-dev\n'
+       '###############################')
+
 setuptools.setup(
-    setup_requires=['pbr>=1.8'],
+    setup_requires=reqs,
     pbr=True)

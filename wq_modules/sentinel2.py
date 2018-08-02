@@ -27,6 +27,7 @@ import os
 import datetime
 import json
 import shutil
+import requests
 
 #imports subfunctions
 from wq_modules import utils
