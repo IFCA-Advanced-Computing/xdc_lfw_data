@@ -108,4 +108,4 @@ venv.bak/
 .*.swp
 
 #config
-./wqsat/modules/config.py
+./wq_modules/config.py
