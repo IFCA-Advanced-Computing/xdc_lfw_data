@@ -7,7 +7,6 @@ numpy
 enum34
 pyramid
 werkzeug
-netCDF4
 imageio
 scikit-image
 xmltodict
