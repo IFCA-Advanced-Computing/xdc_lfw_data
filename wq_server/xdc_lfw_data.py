@@ -1,11 +1,14 @@
+#!/usr/bin/env python3
 import argparse
 import datetime
-from modules import clouds
-from modules import water
+from wq_modules import config
+from wq_modules import clouds
+from wq_modules import water
 
 def valid_date(s):
     try:
-        return datetime.datetime.strptime(s, "%d-%m-%Y").date()
+        return datetime.datetime.strptime(s, "%d-%m-%Y")
+        #.date()
     except ValueError:
         msg = "Not a valid date: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
