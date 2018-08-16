@@ -6,6 +6,7 @@ Cython
 numpy
 enum34
 pyramid
+netCDF4
 werkzeug
 imageio
 scikit-image
