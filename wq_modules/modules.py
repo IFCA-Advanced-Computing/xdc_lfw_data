@@ -21,7 +21,6 @@ from wq_modules import config
 from wq_modules import metadata_gen
 from wq_modules import meteo
 from wq_modules import config
-from wq_modules import tasks
 
 def get_sentinel2_raw(inidate,enddate,region):
   return s2.get_sentinel2_raw(inidate,enddate,region)
