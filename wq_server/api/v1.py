@@ -58,6 +58,9 @@ def satellite(request):
       elif action == 'meteo':
         meteo_data = tasks.get_meteo.delay(start_date, end_date, region)
         return {'request_id' : meteo_data.id}
+      elif action == 'repos':
+        repos_data = tasks.get_dataset.delay(start_date, end_date, region)
+        return {'request_id' : repos_data.id}
       else: 
         return {'Error':'No valid action provided. Accepted actions: cloud_mask, cloud_coverage, meteo'}
     else: 

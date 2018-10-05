@@ -86,7 +86,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
             os.remove(title+".xml")
         except requests.exceptions.RequestException as e:
             print(e)
-    #print(tree)
+    print(tree)
 
 def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding,params):
     
@@ -151,7 +151,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
             os.remove(title+".xml")
         except requests.exceptions.RequestException as e:
             print(e)
-    #print(tree)
+    print(tree)
 
 def file_block_csv(title,params,parent):
     dataTable=ET.SubElement(parent,"dataTable", id=title)
