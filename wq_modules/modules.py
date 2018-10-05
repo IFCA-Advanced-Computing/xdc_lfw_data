@@ -20,6 +20,7 @@ from wq_modules import water
 from wq_modules import config
 from wq_modules import metadata_gen
 from wq_modules import meteo
+from wq_modules import repos
 from wq_modules import config
 
 def get_sentinel2_raw(inidate,enddate,region):
@@ -42,3 +43,6 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
 
 def get_meteo(inidate,enddate,region):
   return meteo.get_meteo(inidate,enddate,region)
+
+def get_dataset(inidate,enddate,region):
+  return repos.get_dataset(inidate,enddate,region)
