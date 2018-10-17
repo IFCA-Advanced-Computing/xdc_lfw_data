@@ -155,5 +155,5 @@ def get_meteo(start_date, end_date, region):
     print(station)
     params = ["ID","Date","Temp"] #TODO add wind, prec
     tt=datosEstacion(METEO_API_TOKEN,METEO_API_URL,start_date,end_date,station,general_name,params)
-    metadata_gen.metadata_gen(general_name,start_date.strftime('%Y-%m-%d'),end_date.strftime('%Y-%m-%d'),region,str(lat),str(lon),params)
+    metadata_gen.metadata_gen("meteo_"+start_date.strftime('%Y-%m-%d')+"_"+end_date.strftime('%Y-%m-%d')+'.csv',start_date.strftime('%Y-%m-%d'),end_date.strftime('%Y-%m-%d'),region,str(lat),str(lon),params)
     return {"output": general_name}

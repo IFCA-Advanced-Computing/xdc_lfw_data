@@ -113,7 +113,7 @@ def check_dataset(ids,api_url,start_date,end_date,region,dataset_path):
                 if u['type'] == 'csv':
                     print(u['links']['self'])
                     link = u['links']['self']
-                    file_name = dataset_path + "_" + u["key"]
+                    file_name = dataset_path + u["key"]
                     with open(file_name, "wb") as f:
                         print("Downloading %s" % file_name)
                         response = requests.get(link, stream=True)
@@ -146,8 +146,8 @@ def check_dataset(ids,api_url,start_date,end_date,region,dataset_path):
                                 
                     #Metadata attachment
                     #TODO add wind, prec
-                    print("Attaching Metadata")
-                    metadata_gen.metadata_gen(file_name,beginDate,endDate,region,str(lat),str(lon),["Just","a","Test"])
+                    print("Attaching Metadata for %s" % file_name)
+                    metadata_gen.metadata_gen(u["key"],beginDate,endDate,region,str(lat),str(lon),["ID","Date","Temp"])
     return file_list
 def get_dataset(start_date, end_date, region):
     """Coordinate data model.
@@ -166,7 +166,7 @@ def get_dataset(start_date, end_date, region):
     """
     #onedata mode
     if (config.onedata_mode == 1):
-        datasets_path = '/onedata/' + config.onedata_user + '/' + config.onedata_space + '/' + config.download_datasets
+        datasets_path = '/onedata/' + config.onedata_user + '/' + config.onedata_space + config.download_datasets
     else:
         datasets_path = '.' + config.download_datasets
    
@@ -184,6 +184,6 @@ def get_dataset(start_date, end_date, region):
 
     print("Checking/download Datasets")
     api_url = 'https://doi.org/'
-    file_list = check_dataset(dataset_list,api_url,start_date,end_date,region,datasets_path)
+    file_list = check_dataset(dataset_list,api_url,start_date,end_date,region,datasets_path + region + '/')
 
     return {"output": file_list}

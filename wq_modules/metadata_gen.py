@@ -78,10 +78,10 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
     tree.write(title+".xml",encoding='UTF-8', xml_declaration=True)
     
     if (config.onedata_mode == 1):
-        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgMDRmMGQxODRmMTBmODAxN2ZkNTNkNGJlYWIyNjc3NTkKMDAxYWNpZCB00aW1lIDwgMTU2MzM00NDg00MQowMDJmc2lnbmF00dXJlIGy97Y8H4rGIxCMYsJSHQg1v6BpLGAwnDL01EE6AFAs1BCg', 'Content-type' : 'application/json'}
+        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgYmJlMjEzYzZhZmU4NzkwNmU1NWZkMTVlNTJjZDEyMTMKMDAxYWNpZCB00aW1lIDwgMTU3MTI5NjQxNAowMDJmc2lnbmF00dXJlIBppv00BiBW01o3vP02kwjnGsmliggXhDu1Y9X02SJz1WaPVCg', 'Content-type' : 'application/json'}
         try:
-            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + geographicDesc + '/' + "meteo_"+dateIni.strftime('%Y-%m-%d')+"_"+dateEnd.strftime('%Y-%m-%d') + '.csv')
-            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + geographicDesc + '/' + "meteo_"+dateIni.strftime('%Y-%m-%d')+"_"+dateEnd.strftime('%Y-%m-%d') + '.csv',headers=header_json,data=eml_to_json(title+".xml"))
+            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title)
+            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(title+".xml"))
             print(r.text)
             os.remove(title+".xml")
         except requests.exceptions.RequestException as e:
@@ -143,10 +143,10 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
     tree.write(title+".xml",encoding='UTF-8', xml_declaration=True)
     
     if (config.onedata_mode == 1):
-        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgMDRmMGQxODRmMTBmODAxN2ZkNTNkNGJlYWIyNjc3NTkKMDAxYWNpZCB00aW1lIDwgMTU2MzM00NDg00MQowMDJmc2lnbmF00dXJlIGy97Y8H4rGIxCMYsJSHQg1v6BpLGAwnDL01EE6AFAs1BCg', 'Content-type' : 'application/json'}
+        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgYmJlMjEzYzZhZmU4NzkwNmU1NWZkMTVlNTJjZDEyMTMKMDAxYWNpZCB00aW1lIDwgMTU3MTI5NjQxNAowMDJmc2lnbmF00dXJlIBppv00BiBW01o3vP02kwjnGsmliggXhDu1Y9X02SJz1WaPVCg', 'Content-type' : 'application/json'}
         try:
-            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + geographicDesc + '/' + "meteo_" + dateIni + "_"+dateEnd + '.csv')
-            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + config.download_datasets + '/' + geographicDesc + '/' + "meteo_" + dateIni + "_" + dateEnd + '.csv',headers=header_json,data=eml_to_json(title+".xml"))
+            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title)
+            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(title+".xml"))
             print(r.text)
             os.remove(title+".xml")
         except requests.exceptions.RequestException as e:
