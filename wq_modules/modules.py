@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from wq_modules import sentinel2 as s2
+from wq_modules import sentinel as s2
 from wq_modules import clouds
 from wq_modules import water
 from wq_modules import config
@@ -24,7 +24,7 @@ from wq_modules import repos
 from wq_modules import config
 
 def get_sentinel2_raw(inidate,enddate,region):
-  return s2.get_sentinel2_raw(inidate,enddate,region)
+  return s2._init_(inidate,enddate,region)
 
 def cloud_coverage(image):
   return clouds.cloud_coverage(image)
