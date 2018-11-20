@@ -21,8 +21,8 @@ from datetime import datetime
 
 from wq_modules import utils
 from wq_modules import config
-from wq_modules import sentinel2
-from wq_modules import landsat8
+from wq_modules import sentinel
+from wq_modules import landsat
 
 def cloud_coverage(inidate, enddate, region):
     """ Given a satellite image, returns the cloud covarage
