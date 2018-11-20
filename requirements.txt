@@ -14,3 +14,4 @@ xmltodict
 sqlalchemy
 mysqlclient
 celery
+tqdm
