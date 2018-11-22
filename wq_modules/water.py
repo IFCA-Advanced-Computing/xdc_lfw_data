@@ -26,8 +26,8 @@ import numpy as np
 
 from wq_modules import utils
 from wq_modules import config
-from wq_modules import sentinel2
-from wq_modules import landsat8
+from wq_modules import sentinel
+from wq_modules import landsat
 
 
 def water_mask(platform, date_path):
