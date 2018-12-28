@@ -32,6 +32,7 @@ Date: Sep 2018
 #imports subfunctions
 from . import config
 from . import utils
+from . import DOS1_landsat
 
 #imports apis
 import json
@@ -294,7 +295,10 @@ class landsat(object):
                                 f.write(chunk)
                                 pbar.update(chunk_size)
 
+            #preprocess data
             utils.unzip_tarfile(filename, date_path)
+            d = DOS1_landsat.DOS1_landsat()
+            d._init_(date_path, self.region)
 
         # Save the new list of files
         with open(os.path.join(self.path, 'downloaded_files.json'), 'w') as outfile:
