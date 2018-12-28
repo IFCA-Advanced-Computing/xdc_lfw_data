@@ -16,3 +16,4 @@ mysqlclient
 celery
 tqdm
 requests
+utm
