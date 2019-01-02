@@ -20,7 +20,7 @@ Created on Wed Jul 18 13:07:32 2018
 @author: daniel
 """
 #imports here
-from skimage import filters
+#from skimage import filters
 import os
 import numpy as np
 
