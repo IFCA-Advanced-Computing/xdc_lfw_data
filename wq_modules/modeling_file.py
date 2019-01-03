@@ -22,20 +22,19 @@ def update_param_value(dic,f1):
     return f2
 
 def get_grid_resolution(f1):
-    m = 0
-    n = 0
-    k = 0
+    m = ''
+    n = ''
+    k = ''
     for line in f1:
-        if line[0:line.find('=')] in 'MNKmax':
-            mnk = line[line.find('=')+1:len(line)]
-            m = int(mnk[0:mnk.find(' '))
-            mnk = mnk[mnk.find(' '):len(mnk)]
-            n = int(mnk[0:mnk.find(' '))
-            mnk = mnk[mnk.find(' '):len(mnk)]
-            k = int(mnk[0:len(mnk))
-    print(m)
-    print(n)
-    print(k)
+        if 'MNKmax' in line:
+            mnk = line[line.find('=')+2:len(line)]
+            m = mnk[0:mnk.find(' ')]
+            mnk = mnk[mnk.find(' ')+1:len(mnk)]
+            n = mnk[0:mnk.find(' ')]
+            mnk = mnk[mnk.find(' ')+1:len(mnk)]
+            k = mnk[0:len(mnk)]
+
+    return m,n,k
 
 def csv_to_wind(path, ini_date, end_date, output):
     data = pd.read_csv(path,delimiter=';')
@@ -109,7 +108,8 @@ ini_date = datetime.strptime(ini_date_str, fmt)
 end_date = datetime.strptime(end_date_str, fmt)
 
 #Layers
-k = 35
+print("Get GRID resolution")
+m,n,k = get_grid_resolution(f1)
 print(minutes_between_date(ini_date,end_date))
 
 #Check Wind file
@@ -159,9 +159,9 @@ dic = {'Itdate': "#"+ini_date.strftime('%Y-%m-%d')+"#\n",
        'Zeta0' : "0\n"
       }
 #Update params
-f2 = update_param_value(dic,f1)
+#f2 = update_param_value(dic,f1)
 
 f1.close()
 f2.close()
-os.rename('data/f34.mdf', 'f34_old.mdf')
-os.rename('data/f34_v2.mdf', 'f34.mdf')
+#os.rename('data/f34.mdf', 'data/f34_old.mdf')
+#os.rename('data/f34_v2.mdf', 'data/f34.mdf')
