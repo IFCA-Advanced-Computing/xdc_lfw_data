@@ -11,7 +11,8 @@ def minutes_between_date(ini_date,end_date):
     return minutesDiff
 
 def update_param_value(dic,f1):
-
+    print(f1)
+    print(f2)
     for line in f1:
         if line[0:line.find('=')] in dic:
             f2.write(line.replace(line,line[0:line.find('=')]+" = "+dic[line[0:line.find('=')]]))
@@ -20,21 +21,6 @@ def update_param_value(dic,f1):
         else:
             f2.write(line)
     return f2
-
-def get_grid_resolution(f1):
-    m = ''
-    n = ''
-    k = ''
-    for line in f1:
-        if 'MNKmax' in line:
-            mnk = line[line.find('=')+2:len(line)]
-            m = mnk[0:mnk.find(' ')]
-            mnk = mnk[mnk.find(' ')+1:len(mnk)]
-            n = mnk[0:mnk.find(' ')]
-            mnk = mnk[mnk.find(' ')+1:len(mnk)]
-            k = mnk[0:len(mnk)]
-
-    return m,n,k
 
 def csv_to_wind(path, ini_date, end_date, output):
     data = pd.read_csv(path,delimiter=';')
@@ -88,6 +74,84 @@ def gen_ini_value(k,value):
         values = values + ('    %5.3f\n' % value)
     return values
 
+def gen_uniform_output_bct(out_dic,output,ini_date,end_date):
+    f = open(output, 'w')
+    i = 1
+    for e in out_dic:
+        f.write("table-name           'Boundary Section : %i'\n" % i)
+        f.write("contents             'Logarithmic         '\n")
+        f.write("location             '" + e + "               '\n")
+        f.write("time-function        'non-equidistant'\n")
+        f.write("reference-time       " + ini_date.strftime("%Y%m%d") + "\n")
+        f.write("time-unit            'minutes'\n")
+        f.write("interpolation        'linear'\n")
+        f.write("parameter            'time                '                     unit '[min]'\n")
+        f.write("parameter            'total discharge (t)  end A'               unit '[m3/s]'\n")
+        f.write("parameter            'total discharge (t)  end B'               unit '[m3/s]'\n")
+        f.write("records-in-table     2\n")
+        f.write("0 %5.2f 9.9999900e+002\n" % out_dic[e])
+        f.write("%i %5.2f 9.9999900e+002\n" % (minutes_between_date(ini_date,end_date),out_dic[e]))
+        i = i + 1
+    f.close()
+
+def gen_uniform_output_bcc(out_dic,output,ini_date,end_date):
+    f = open(output, 'w')
+    i = 1
+    for e in out_dic:
+        if "Salinity" in out_dic[e]:
+            f.write("table-name           'Boundary Section : %i'\n" % i)
+            f.write("contents             'Uniform         '\n")
+            f.write("location             '" + e + "               '\n")
+            f.write("time-function        'non-equidistant'\n")
+            f.write("reference-time       " + ini_date.strftime("%Y%m%d") + "\n")
+            f.write("time-unit            'minutes'\n")
+            f.write("interpolation        'linear'\n")
+            f.write("parameter            'time                '  unit '[min]'\n")
+            f.write("parameter            'Salinity            end A uniform'               unit '[ppt]'\n")
+            f.write("parameter            'Salinity            end B uniform'               unit '[ppt]'\n")
+            f.write("records-in-table     2\n")
+            f.write("0 %5.2f %5.2f\n" % (out_dic[e]['Salinity'],out_dic[e]['Salinity']))
+            f.write("%i %5.2f %5.2f\n" % (minutes_between_date(ini_date,end_date),out_dic[e]['Salinity'],out_dic[e]['Salinity']))
+        if "Temperature" in out_dic[e]:
+            f.write("table-name           'Boundary Section : %i'\n" % i)
+            f.write("contents             'Uniform         '\n")
+            f.write("location             '" + e + "               '\n")
+            f.write("time-function        'non-equidistant'\n")
+            f.write("reference-time       " + ini_date.strftime("%Y%m%d") + "\n")
+            f.write("time-unit            'minutes'\n")
+            f.write("interpolation        'linear'\n")
+            f.write("parameter            'time                '  unit '[min]'\n")
+            f.write("parameter            'Temperature           end A uniform'               unit '[C]'\n")
+            f.write("parameter            'Temperature           end B uniform'               unit '[C]'\n")
+            f.write("records-in-table     2\n")
+            f.write("0 %5.2f %5.2f\n" % (out_dic[e]['Temperature'],out_dic[e]['Temperature']))
+            f.write("%i %5.2f %5.2f\n" % (minutes_between_date(ini_date,end_date),out_dic[e]['Temperature'],out_dic[e]['Temperature']))
+        else:
+            print("ERROR: Missing Salinity/Temperature for bcc")  
+        i = i + 1
+    f.close()
+
+def gen_uniform_intput_dis(in_dic,output,ini_date,end_date):
+    f = open(output, 'w')
+    i = 1
+    for e in in_dic:
+        f.write("table-name          'Discharge : %i'\n" % i)
+        f.write("contents            'walking   '\n")
+        f.write("location            '"+ e + "               '\n")
+        f.write("time-function       'non-equidistant'\n")
+        f.write("reference-time       " + ini_date.strftime("%Y%m%d") + "\n")
+        f.write("time-unit           'minutes'\n")
+        f.write("interpolation       'block'\n")
+        f.write("parameter           'time                '                     unit '[min]'\n")
+        f.write("parameter           'flux/discharge rate '                     unit '[m3/s]'\n")
+        f.write("parameter           'Salinity            '                     unit '[ppt]'\n")
+        f.write("parameter           'Temperature         '                     unit '[C]'\n")
+        f.write("records-in-table    2\n")
+        f.write("0 %5.2f %5.2f %5.2f\n" % (in_dic[e]['Flow'],in_dic[e]['Salinity'],in_dic[e]['Temperature']))
+        f.write("%i %5.2f %5.2f %5.2f\n" % (minutes_between_date(ini_date,end_date),in_dic[e]['Flow'],in_dic[e]['Salinity'],in_dic[e]['Temperature']))
+        i = i + 1
+    f.close()
+
 #TODO eliminate (only for testing)
 #for line in f1:
 #    if "Itdate=" in line or "Itdate =" in line:
@@ -96,20 +160,19 @@ def gen_ini_value(k,value):
 #    else:
 #        f2.write(line)
 print("miau")
-f1 = open('data/f34.mdf','r')
-f2 = open('data/f34_v2.mdf','w')
+f1 = open('test_1.mdf','r')
+f2 = open('test_1_v2.mdf','w')
 
 #Parameters
-ini_date_str = '2012-01-01 00:00:00'
-end_date_str = '2013-04-05 00:00:00'
+ini_date_str = '2016-01-01 00:00:00'
+end_date_str = '2016-04-05 00:00:00'
 
 fmt = '%Y-%m-%d %H:%M:%S'
 ini_date = datetime.strptime(ini_date_str, fmt)
 end_date = datetime.strptime(end_date_str, fmt)
 
 #Layers
-print("Get GRID resolution")
-m,n,k = get_grid_resolution(f1)
+k = 35
 print(minutes_between_date(ini_date,end_date))
 
 #Check Wind file
@@ -143,10 +206,18 @@ print("Radiation file created: %s" % rad_file_name)
 print("Searching flow data")
 print("Getting data")
 
+#Uniform output
+out_dic = {'Presa': 0.5}
+presa_bct = 'Presa.bct'
+gen_uniform_output_bct(out_dic,presa_bct,ini_date,end_date)
 
-#Input-Output physical
-print("Searching tributaries data")
-print("Getting data")
+out_dic = {'Presa': {'Temperature': 12.5, 'Salinity': 0.03}}
+presa_bcc = 'Presa.bcc'
+gen_uniform_output_bcc(out_dic,presa_bcc,ini_date,end_date)
+
+input_dic = {'Duero': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Revinuesa': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Ebrillos': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Dehesa': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Remonicio': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}}
+input_dis = 'tributaries.dis'
+gen_uniform_intput_dis(input_dic,input_dis,ini_date,end_date)
 
 #Parameters update
 dic = {'Itdate': "#"+ini_date.strftime('%Y-%m-%d')+"#\n", 
@@ -154,14 +225,15 @@ dic = {'Itdate': "#"+ini_date.strftime('%Y-%m-%d')+"#\n",
        'Tstop': "%i\n" % minutes_between_date(ini_date,end_date),
        'Filwnd': "#" + wind_file_name + "#\n",
        'Filtmp': "#" + rad_file_name + "#\n",
-       'S0' : ""+ gen_ini_value(35,0.03),
-       'T0' : ""+ gen_ini_value(35,10.2),
+       'FilbcT': "#" + presa_bct + "#\n",
+       'FilbcC':"#" + presa_bcc + "#\n",
+       'Fildis': "#" + input_dis + "#\n",
        'Zeta0' : "0\n"
       }
 #Update params
-#f2 = update_param_value(dic,f1)
+f2 = update_param_value(dic,f1)
 
 f1.close()
 f2.close()
-#os.rename('data/f34.mdf', 'data/f34_old.mdf')
-#os.rename('data/f34_v2.mdf', 'data/f34.mdf')
+os.rename('test_1.mdf', 'test_1_old.mdf')
+os.rename('test_1_v2.mdf', 'test_1.mdf')
