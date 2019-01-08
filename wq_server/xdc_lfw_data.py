@@ -60,11 +60,12 @@ utils.path_configurations(path)
 
 #Action management
 if args.action is not None:
-    l = landsat.landsat()
-    l._init_(sd, ed, args.region)
+    l = landsat.Landsat(sd, ed, args.region)
+    l.download()
 
-    s = sentinel.sentinel()
-    s._init_(sd, ed, args.region)
+    s = sentinel.Sentinel(sd, ed, args.region)
+    s.download()
+
 #    if args.action == 'cloud_coverage':
 #
 #        json_cloud_coverage = clouds.cloud_coverage(args.start_date, args.end_date, args.region)

@@ -30,8 +30,8 @@ Date: Sep 2018
 """
 
 #imports subfunctions
-from . import config
-from . import utils
+from wq_modules import config
+from wq_modules import utils
 
 #imports apis
 import requests
@@ -41,9 +41,9 @@ import logging
 from six.moves.urllib.parse import urljoin
 import json
 
-class sentinel(object):
+class Sentinel:
 
-    def _init_(self, inidate, enddate, region):
+    def __init__(self, inidate, enddate, region):
 
         #data for download files
         self.inidate = inidate.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -65,9 +65,6 @@ class sentinel(object):
 
         #ESA APIs
         self.api_url = 'https://scihub.copernicus.eu/apihub/'
-
-        #initialize
-        self.download()
 
 
     def query_date(self):
