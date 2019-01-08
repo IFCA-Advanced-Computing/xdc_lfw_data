@@ -30,9 +30,9 @@ Date: Sep 2018
 """
 
 #imports subfunctions
-from . import config
-from . import utils
-from . import DOS1_landsat
+from wq_modules import config
+from wq_modules import utils
+from wq_modules import DOS1_landsat
 
 #imports apis
 import json
@@ -41,9 +41,9 @@ import re
 from tqdm import tqdm
 import os
 
-class landsat(object):
+class Landsat:
 
-    def _init_(self, inidate, enddate, region):
+    def __init__(self, inidate=0, enddate=0, region='None'):
         """
         initialize the variables used in the landsat class
 
@@ -77,8 +77,6 @@ class landsat(object):
         self.api_endpoint = 'https://earthexplorer.usgs.gov/inventory/json/v/{}/'.format(api_version)
         self.login_url = 'https://ers.cr.usgs.gov/login/'
 
-        #initialize
-        self.download()
 
     def to_json(self, **kwargs):
         """Convert input arguments to a formatted JSON string
@@ -297,8 +295,8 @@ class landsat(object):
 
             #preprocess data
             utils.unzip_tarfile(filename, date_path)
-            d = DOS1_landsat.DOS1_landsat()
-            d._init_(date_path, self.region)
+            d = DOS1_landsat.DOS1(date_path, self.region)
+            d.create_netCDF()
 
         # Save the new list of files
         with open(os.path.join(self.path, 'downloaded_files.json'), 'w') as outfile:
