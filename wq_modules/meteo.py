@@ -23,71 +23,86 @@ import xml.etree.cElementTree as ET
 from wq_modules import metadata_gen
 from wq_modules import config
 
-"""Lo primero que debemos hacer es obtener todas las estaciones para conocer su identificador 
-y asi buscar los resgistros historicos para la zona que queramos."""
-""" Para buscar le pasaremos la provincia donde queremos que se encuentren las estaciones"""
-def find_station(key,api,lat,lon):
-    conn = http.client.HTTPSConnection(api)
-    headers = {'cache-control': "no-cache" }
-    conn.request("GET", "/opendata/api/valores/climatologicos/inventarioestaciones/todasestaciones/?api_key="+key, headers=headers)
-    res = conn.getresponse()
-    datosTodasEstaciones = res.read().decode('latin')
-    datosTodasEstaciones = json.loads(datosTodasEstaciones)
-    conn.request("GET", datosTodasEstaciones['datos'], headers=headers)
-    res= conn.getresponse()
-    datosEstaciones = res.read().decode('latin','ignore')
-    datosEstaciones= json.loads(datosEstaciones)
-    conn.close()
+class Meteo:
 
-    #Find closest station
-    station = ''
-    min_station = 9999
-    for search in datosEstaciones:
-        if search['latitud'][-1] == 'N':
-            lat_temp = float(search['latitud'][0:-1])*0.0001
-        else:
-            lat_temp = float(search['latitud'][0:-1])*-0.0001
-        if search['longitud'][-1] == "E":
-            lon_temp = float(search['longitud'][0:-1])*0.0001
-        else:
-            lon_temp = float(search['longitud'][0:-1])*-0.0001
-        if (abs(lon-lon_temp) + abs(lat-lat_temp)) < min_station:
-            station = search['indicativo']
-            min_station = abs(lon-lon_temp) + abs(lat-lat_temp)
-            print('Estacion %s - %s || %s, %s' % (search['indicativo'],search['nombre'],lat_temp,lon_temp))
-    return station
+    def __init__(self, inidate, enddate, region):
 
-def datosEstacion(key,api,start_date,end_date,station,general_name,params):
-    headers = {'cache-control': "no-cache" }
-    conn = http.client.HTTPSConnection(api)
-    salidaInformacion=[]
-    with open(general_name+'.csv', 'w') as csvfile:
-        spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow(params)
-        delta = end_date-start_date
-        if (delta.days <31):
-            req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+end_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+station+"/?api_key="+key
-            print(req)
-            conn.request("GET",req, headers=headers)
-            res = conn.getresponse()
-            dataEstacion = res.read().decode('utf-8')
-            dataEstacion = json.loads(dataEstacion)
-            conn.request("GET", dataEstacion['datos'], headers=headers)
-            res= conn.getresponse()
-            datosEstacion = res.read().decode('utf-8','ignore')
-            datosEstacion= json.loads(datosEstacion)
-            salidaInformacion.append([station,datosEstacion])
-            for resultados in datosEstacion:
-                #print(resultados['fecha'],":",resultados['tmed'],"C")
-                try:
-                    spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
-                except:
-                    print('punch')
-            conn.close()
-        else:
-            temp_end_date = start_date + datetime.timedelta(days=30)
-            while(temp_end_date < end_date):
-                req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+temp_end_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+station+"/?api_key="+key
+        #data for download files
+        self.inidate = inidate
+        self.enddate = enddate
+        self.region = region
+        self.coord = config.regions[region]["coordinates"]
+
+        #Get Latitude, Longitude
+        self.lon = self.coord['W']
+        self.lat = self.coord['N']
+
+
+        self.station = ''
+        self.general_name = ''
+        self.params = ["ID","Date","Temp"]
+
+        #metadata of the data
+        self.metadata = {'region': region, # place / reservoir / name of the list
+                         'id': config.regions[region]["id"],
+                         'coord': config.regions[region]["coordinates"]
+                         }
+
+        #work path
+        self.path = config.datasets_path
+
+        #meteo credentials
+        self.credentials = config.METEO_API_TOKEN
+
+        #AEMET APIs
+        self.api_url = config.METEO_API_URL
+
+
+    """Lo primero que debemos hacer es obtener todas las estaciones para conocer su identificador 
+    y asi buscar los resgistros historicos para la zona que queramos."""
+    """ Para buscar le pasaremos la provincia donde queremos que se encuentren las estaciones"""
+    def find_station(self):
+        conn = http.client.HTTPSConnection(self.api_url)
+        headers = {'cache-control': "no-cache" }
+        conn.request("GET", "/opendata/api/valores/climatologicos/inventarioestaciones/todasestaciones/?api_key="+self.credentials, headers=headers)
+        res = conn.getresponse()
+        datosTodasEstaciones = res.read().decode('latin')
+        datosTodasEstaciones = json.loads(datosTodasEstaciones)
+        conn.request("GET", datosTodasEstaciones['datos'], headers=headers)
+        res= conn.getresponse()
+        datosEstaciones = res.read().decode('latin','ignore')
+        datosEstaciones= json.loads(datosEstaciones)
+        conn.close()
+        
+        print(self.lon)
+
+        #Find closest station
+        min_station = 9999
+        for search in datosEstaciones:
+            if search['latitud'][-1] == 'N':
+                lat_temp = float(search['latitud'][0:-1])*0.0001
+            else:
+                lat_temp = float(search['latitud'][0:-1])*-0.0001
+            if search['longitud'][-1] == "E":
+                lon_temp = float(search['longitud'][0:-1])*0.0001
+            else:
+                lon_temp = float(search['longitud'][0:-1])*-0.0001
+            if (abs(self.lon-lon_temp) + abs(self.lat-lat_temp)) < min_station:
+                self.station = search['indicativo']
+                min_station = abs(self.lon-lon_temp) + abs(self.lat-lat_temp)
+                print('Estacion %s - %s || %s, %s' % (search['indicativo'],search['nombre'],lat_temp,lon_temp))
+        return self.station
+
+    def datosEstacion(self):
+        headers = {'cache-control': "no-cache" }
+        conn = http.client.HTTPSConnection(self.api_url)
+        salidaInformacion=[]
+        with open(self.general_name+'.csv', 'w') as csvfile:
+            spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            spamwriter.writerow(self.params)
+            delta = self.enddate-self.inidate
+            if (delta.days <31):
+                req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+self.inidate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+self.enddate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+self.station+"/?api_key="+self.credentials
                 print(req)
                 conn.request("GET",req, headers=headers)
                 res = conn.getresponse()
@@ -97,7 +112,7 @@ def datosEstacion(key,api,start_date,end_date,station,general_name,params):
                 res= conn.getresponse()
                 datosEstacion = res.read().decode('utf-8','ignore')
                 datosEstacion= json.loads(datosEstacion)
-                salidaInformacion.append([station,datosEstacion])
+                salidaInformacion.append([self.station,datosEstacion])
                 for resultados in datosEstacion:
                     #print(resultados['fecha'],":",resultados['tmed'],"C")
                     try:
@@ -105,55 +120,62 @@ def datosEstacion(key,api,start_date,end_date,station,general_name,params):
                     except:
                         print('punch')
                 conn.close()
-                start_date = temp_end_date
-                temp_end_date = start_date + datetime.timedelta(days=30)
+            else:
+                temp_end_date = self.inidate + datetime.timedelta(days=30)
+                while(temp_end_date < self.enddate):
+                    req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+self.inidate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+temp_end_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+self.station+"/?api_key="+self.credentials
+                    print(req)
+                    conn.request("GET",req, headers=headers)
+                    res = conn.getresponse()
+                    dataEstacion = res.read().decode('utf-8')
+                    dataEstacion = json.loads(dataEstacion)
+                    conn.request("GET", dataEstacion['datos'], headers=headers)
+                    res= conn.getresponse()
+                    datosEstacion = res.read().decode('utf-8','ignore')
+                    datosEstacion= json.loads(datosEstacion)
+                    salidaInformacion.append([self.station,datosEstacion])
+                    for resultados in datosEstacion:
+                        #print(resultados['fecha'],":",resultados['tmed'],"C")
+                        try:
+                            spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
+                        except:
+                            print('punch')
+                    conn.close()
+                    self.inidate = temp_end_date
+                    temp_end_date = self.inidate + datetime.timedelta(days=30)
             
-            req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+start_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+end_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+station+"/?api_key="+key
-            print(req)
-            conn.request("GET",req, headers=headers)
-            res = conn.getresponse()
-            dataEstacion = res.read().decode('utf-8')
-            dataEstacion = json.loads(dataEstacion)
-            conn.request("GET", dataEstacion['datos'], headers=headers)
-            res= conn.getresponse()
-            datosEstacion = res.read().decode('utf-8','ignore')
-            datosEstacion= json.loads(datosEstacion)
-            salidaInformacion.append([station,datosEstacion])
-            for resultados in datosEstacion:
-                #print(resultados['fecha'],":",resultados['tmed'],"C")
-                try:
-                    spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
-                except:
-                    print('punch')
-            conn.close()
-    csvfile.close()
-    return salidaInformacion
+                req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+self.inidate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+self.enddate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+self.station+"/?api_key="+self.credentials
+                print(req)
+                conn.request("GET",req, headers=headers)
+                res = conn.getresponse()
+                dataEstacion = res.read().decode('utf-8')
+                dataEstacion = json.loads(dataEstacion)
+                conn.request("GET", dataEstacion['datos'], headers=headers)
+                res= conn.getresponse()
+                datosEstacion = res.read().decode('utf-8','ignore')
+                datosEstacion= json.loads(datosEstacion)
+                salidaInformacion.append([self.station,datosEstacion])
+                for resultados in datosEstacion:
+                    #print(resultados['fecha'],":",resultados['tmed'],"C")
+                    try:
+                        spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
+                    except:
+                        print('punch')
+                conn.close()
+        csvfile.close()
+        return salidaInformacion
 
-def get_meteo(start_date, end_date, region):
-    #onedata mode
-    if (config.onedata_mode == 1):
-        datasets_path = '/onedata/' + config.onedata_user + '/' + config.onedata_space + '/' + config.download_datasets
-    else:
-        datasets_path = '.' + config.download_datasets
+    def get_meteo(self):
+        #onedata mode
+        if (config.onedata_mode == 1):
+            datasets_path = '/onedata/' + config.onedata_user + '/' + config.onedata_space + '/' + config.download_datasets
+        else:
+            datasets_path = '.' + config.download_datasets
    
-    general_name = datasets_path + '/' + region + '/' + "meteo_"+start_date.strftime('%Y-%m-%d')+"_"+end_date.strftime('%Y-%m-%d')
-    METEO_API_TOKEN=config.METEO_API_TOKEN
-    METEO_API_URL=config.METEO_API_URL
+        self.general_name = datasets_path + '/' + self.region + '/' + "meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')
 
-    #Get Latitude, Longitude
-    coords = config.regions['regions'][region]
-    lon = 0
-    for l in coords:
-        lon = lon + l[0]
-    lon = lon/len(coords)
-    lat = 0
-    for l in coords:
-        lat = lat + l[1]
-    lat = lat/len(coords)
-    print("Lat: %s Lon: %s" % (lat,lon))
-    station = find_station(METEO_API_TOKEN,METEO_API_URL,lat,lon) #TODO add lat/lon
-    print(station)
-    params = ["ID","Date","Temp"] #TODO add wind, prec
-    tt=datosEstacion(METEO_API_TOKEN,METEO_API_URL,start_date,end_date,station,general_name,params)
-    metadata_gen.metadata_gen("meteo_"+start_date.strftime('%Y-%m-%d')+"_"+end_date.strftime('%Y-%m-%d')+'.csv',start_date.strftime('%Y-%m-%d'),end_date.strftime('%Y-%m-%d'),region,str(lat),str(lon),params)
-    return {"output": general_name}
+        self.station = self.find_station() #TODO add lat/lon
+        print(self.station)
+        tt=self.datosEstacion()
+        metadata_gen.metadata_gen("meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')+'.csv',self.inidate.strftime('%Y-%m-%d'),self.enddate.strftime('%Y-%m-%d'),self.region,str(self.lat),str(self.lon),self.params)
+        return {"output": self.general_name + ".csv"}
