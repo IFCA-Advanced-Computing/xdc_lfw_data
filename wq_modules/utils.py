@@ -24,11 +24,12 @@ import requests
 import imageio
 import shutil
 import io
+import utm
 from netCDF4 import Dataset
 import numpy as np
 
 #Submodules
-from . import config
+from wq_modules import config
 
 #APIs
 import zipfile, tarfile
@@ -172,8 +173,20 @@ def load_bands(datepath, band_list):
         band = Dataset(os.path.join(datepath, '{}.nc'.format(b)))
         band_dict[b] = band.variables['Band1'][:] # band array
 
-    latitude = band.variables['lat'][:] # latitude array
-    longitude = band.variables['lon'][:] # longitude array
+        if 'lat' in band.variables:
+
+            latitude = band.variables['lat'][:] # latitude array
+            longitude = band.variables['lon'][:] # longitude array
+        
+        elif 'y' in band.variables:
+            latitude = band.variables['y'][:] # latitude array
+            longitude = band.variables['x'][:] # longitude array
+        
+        else:
+            msg = "NetCDF damaged or impossible to read"
+            raise argparse.ArgumentTypeError(msg)
+        
+            
     return longitude, latitude, band_dict
 
 
@@ -221,8 +234,7 @@ def create_netCDF(path, mask, lat, lon, name):
     Create a NetCDF file with mask: clouds, water, ...
     """
     #create de netCDF4 file
-    new_name = name
-    ncfile = Dataset(os.path.join(path, "{}.nc".format(new_name)),"w", format='NETCDF4_CLASSIC') #'w' stands for write
+    ncfile = Dataset(os.path.join(path, "{}.nc".format(name)),"w", format='NETCDF4_CLASSIC') #'w' stands for write
 
     ncfile.createDimension('lat', len(lat))
     ncfile.createDimension('lon', len(lon))
@@ -232,7 +244,7 @@ def create_netCDF(path, mask, lat, lon, name):
     Band1 = ncfile.createVariable('Band1', 'f4', ('lat', 'lon'))
 
     ncfile.description = "mask"
-    ncfile.history = "Created" + dt.datetime.today().strftime("%m/%d/%Y")
+    ncfile.history = "Created" + datetime.datetime.today().strftime("%m/%d/%Y")
     ncfile.source = "netCDF4 python module"
 
     latitude[:] = lat
@@ -240,75 +252,3 @@ def create_netCDF(path, mask, lat, lon, name):
     Band1[:,:] = mask
 
     ncfile.close
-
-
-def DN_to_reflectance(date_path):
-
-    coefs = {"mult": {}, "add": {}}
-    files = os.listdir(date_path)
-
-    for f in files:
-        if f.endswith('MTL.txt'):
-            textfile = f
-
-    with open(os.path.join(date_path, textfile)) as infile:
-        for line in infile:
-
-            if line.startswith("    REFLECTANCE_ADD"):
-                l = line.split('=')
-                value = float(l[-1])
-                name = l[0].split('_')[-2]+l[0].split('_')[-1]
-                name = name.replace(' ', '')
-
-                coefs["add"][name] = value
-
-            elif line.startswith("    REFLECTANCE_MULT"):
-                l = line.split('=')
-                value = float(l[-1])
-                name = l[0].split('_')[-2]+l[0].split('_')[-1]
-                name = name.replace(' ', '')
-
-                coefs["mult"][name] = value
-
-            elif line.startswith('    SUN_ELEVATION'):
-                l = line.split('=')
-                value = float(l[-1])
-                name = l[0].split('_')[1]
-                name = name.replace(' ', '')
-
-                coefs[name] = value
-
-    pansharpen_bands = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7']
-    band_dict = {}
-
-    for b in pansharpen_bands:
-
-        band = Dataset(os.path.join(date_path, '{}.nc'.format(b)))
-        band_dict[b] = band.variables['Band1'][:] # band array
-
-        lat = band.variables['y'][:]
-        lon = band.variables['x'][:]
-
-        if b =='B1':
-            reflectance = coefs['mult']['BAND1'] * band_dict['B1'].data + coefs['add']['BAND1']
-            reflectance = np.round(reflectance / np.sin(coefs['ELEVATION']), decimals = 4)
-        elif b =='B2':
-            reflectance = coefs['mult']['BAND2'] * band_dict['B2'].data + coefs['add']['BAND2']
-            reflectance = np.round(reflectance / np.sin(coefs['ELEVATION']), decimals = 4)
-        elif b =='B3':
-            reflectance = coefs['mult']['BAND3'] * band_dict['B3'].data + coefs['add']['BAND3']
-            reflectance = np.round(reflectance / np.sin(coefs['ELEVATION']), decimals = 4)
-        elif b =='B4':
-            reflectance = coefs['mult']['BAND4'] * band_dict['B4'].data + coefs['add']['BAND4']
-            reflectance = np.round(reflectance / np.sin(coefs['ELEVATION']), decimals = 4)
-        elif b =='B5':
-            reflectance = coefs['mult']['BAND5'] * band_dict['B5'].data + coefs['add']['BAND5']
-            reflectance = np.round(reflectance / np.sin(coefs['ELEVATION']), decimals = 4)
-        elif b =='B6':
-            reflectance = (coefs['mult']['BAND6'] * band_dict['B6'].data) + coefs['add']['BAND6']
-            reflectance = np.round(reflectance / np.sin(coefs['ELEVATION']), decimals = 4)
-        elif b =='B7':
-            reflectance = (coefs['mult']['BAND7'] * band_dict['B7'].data) + coefs['add']['BAND7']
-            reflectance = np.round(reflectance / np.sin(coefs['ELEVATION']), decimals = 4)
-
-        create_netCDF(date_path, reflectance, lat, lon, b)

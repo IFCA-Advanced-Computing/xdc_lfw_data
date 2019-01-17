@@ -16,14 +16,12 @@ parser.add_argument("-sd",
                     help="The Start Date - format DD-MM-YYYY",
                     required=True,
                     dest='start_date')
-#                    type=valid_date)
 
 parser.add_argument("-ed",
                     "--enddate",
                     help="The Start Date - format DD-MM-YYYY",
                     required=True,
                     dest='end_date')
-#                    type=valid_date)
 
 parser.add_argument('--region',
                     dest='region',
@@ -60,28 +58,21 @@ utils.path_configurations(path)
 
 #Action management
 if args.action is not None:
-    l = landsat.Landsat(sd, ed, args.region)
-    l.download()
-
-    s = sentinel.Sentinel(sd, ed, args.region)
-    s.download()
 
 #    if args.action == 'cloud_coverage':
 #
 #        json_cloud_coverage = clouds.cloud_coverage(args.start_date, args.end_date, args.region)
 #        print(json_cloud_coverage)
 #
-#    elif args.action == 'cloud_mask':
-#
-#        json_cloud_mask = clouds.cloud_mask(args.start_date, args.end_date, args.region)
-#        print(json_cloud_mask)
-#
 #    elif args.action == 'water_surface':
 #
 #        json_water_surface = water.water_surface(args.start_date, args.end_date, args.region)
 #        print(json_water_surface)
 #
-#    elif args.action == 'water_mask':
-#
-#        json_water_mask = water.create_water_mask(args.start_date, args.end_date, args.region)
-#        print(json_water_mask)
+    if args.action == 'water_mask':
+
+        water.water_mask(sd, ed, args.region)
+    
+    elif args.action == 'cloud_mask':
+        
+        clouds.cloud_mask(sd, ed, args.region)

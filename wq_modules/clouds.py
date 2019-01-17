@@ -29,8 +29,6 @@ def cloud_coverage(inidate, enddate, region):
         image: file
         input
     """
-    sentinel_files = sentinel2.get_sentinel2_raw(inidate.date(),enddate.date(),region)
-    landsat_files = landsat8.get_landsat8_raw(inidate.date(),enddate.date(),region)
     
     datasets_path = config.satelite_info['data_path']
     reservoir_path = os.path.join(datasets_path, region)
@@ -65,43 +63,46 @@ def cloud_mask(inidate, enddate, region):
         image: netCDF file
     """
     
-    sentinel_files = sentinel2.get_sentinel2_raw(inidate,enddate,region)
-    landsat_files = landsat8.get_landsat8_raw(inidate,enddate,region)
+    s = sentinel.Sentinel(inidate, enddate, region)
+    s.download()
+    sentinel_files = s.__dict__['output']
     
-    datasets_path = config.satelite_info['data_path']
-    products = []
+    l = landsat.Landsat(inidate, enddate, region)
+    l.download()
+    landsat_files = l.__dict__['output']
     
     #sentinel 2 cloud_mask
-    for f in sentinel_files:
+    for file in sentinel_files:
+        
+        date_path = sentinel_files[file]['path']
+        
         #check if the cloud mask already done
-        date_path = os.path.join(datasets_path, region, f)
         if 'Cloud.nc' in os.listdir(date_path):
             continue
     
-        band_list = ['B3', 'B4', 'B11']
+        band_list = ['B04']
         lon, lat, bands = utils.load_bands(date_path, band_list)
     
         # Divide values by 10000 if bands downloaded from Google Earth API
         for k, v in bands.items():
             bands[k] = v / 10000.
     
-        ndsi = (bands['B3'] - bands['B11']) / (bands['B3'] + bands['B11']) #vegetation index
+#        ndsi = (bands['B03'] - bands['B11']) / (bands['B03'] + bands['B11']) #vegetation index
     
         #filters to discriminate clouds
-        mask_potential_cloud = (bands['B4'] > 0.07) * (bands['B4'] < 0.25) # are passed to Step 1.b 
-        mask_cloud = bands['B4'] > 0.25 # Clouds , are passed to step2
-        mask_cloud = mask_cloud + (mask_potential_cloud * (ndsi > -0.16)) # are passed to Step 2
+        mask_cloud = (bands['B04'] > 0.07) * (bands['B04'] < 0.25) # are passed to Step 1.b 
+#        mask_cloud = bands['B04'] > 0.25 # Clouds , are passed to step2
+#        mask_cloud = mask_cloud + mask_potential_cloud * (ndsi > -0.16)) # are passed to Step 2
         
         #create de netCDF4 file
         utils.create_netCDF(date_path, mask_cloud, lat, lon, 'Cloud')
-        
-        #json
-        products.append('{}.Cloud.nc'.format(date_path))
-    
+
     #landsat 8 cloud mask
-    for f in landsat_files:
+    for file in landsat_files:
+        
         #check if the cloud mask already done
-        date_path = os.path.join(datasets_path, region, f)
+        date_path = landsat_files[file]['path']
+        
         if 'Cloud.nc' in os.listdir(date_path):
             continue
         
@@ -114,11 +115,27 @@ def cloud_mask(inidate, enddate, region):
         #create de netCDF4 file
         utils.create_netCDF(date_path, mask_cloud, lat, lon, 'Cloud')
         
-        #json
-        products.append('{}.Cloud.nc'.format(date_path))
+def mask(platform, date_path):
+
+    if platform == 'Sentinel-2':
         
-    #json
-    data = {'downloaded':{'sentinel 2': sentinel_files, 'landsat 8': landsat_files},
-            'action': products}
+        band_list = ['B04']
+        lon, lat, bands = utils.load_bands(date_path, band_list)
     
-    return data
+        # Divide values by 10000 if bands downloaded from Google Earth API
+        for k, v in bands.items():
+            bands[k] = v / 10000.
+    
+        mask_cloud = (bands['B04'] > 0.07) * (bands['B04'] < 0.25)
+    
+    elif platform == 'Landsat8':
+        
+        band_list = ['B1', 'B2', 'B3', 'B4', 'B5']
+        lon, lat, bands = utils.load_bands(date_path, band_list)
+        
+        #Clouds
+        mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
+    
+    return mask_cloud
+        
+        
