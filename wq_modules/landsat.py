@@ -61,10 +61,7 @@ class Landsat:
         self.coord = config.regions[region]["coordinates"]
 
         #metadata of the data
-        self.metadata = {'region': region, # place / reservoir / name of the list
-                         'id_region': config.regions[region]["id"],
-                         'coord': config.regions[region]["coordinates"]
-                         }
+        self.output = {}
 
         #work path
         self.path = config.datasets_path
@@ -221,10 +218,9 @@ class Landsat:
         identifiers = []
         for scene in scenes:
 
-            #Metadata file
-            self.metadata['date'] = scene['acquisitionDate']
-            self.metadata['file'] = scene['displayId']
-            self.metadata['id_file'] = scene['entityId']
+            self.acquisitionDate = scene['acquisitionDate']
+            self.displayId = scene['displayId']
+            self.entityId = scene['entityId']
 
             #file
             file = scene['displayId'].split('_')
@@ -266,7 +262,18 @@ class Landsat:
 
         for ID in identifiers:
 
-            if ID in downloaded_files['Landsat 8'][self.metadata['region']]:
+            #Metadata file
+            self.output[ID] = {}
+            self.output[ID]['date'] = self.acquisitionDate
+            self.output[ID]['file'] = self.displayId
+            self.output[ID]['id_file'] = self.entityId
+            self.output[ID]['region'] = self.region
+            self.output[ID]['coord'] = self.coord
+
+            date_path = os.path.join(self.path, self.region, ID)
+            self.output[ID]['path'] = date_path
+
+            if ID in downloaded_files['Landsat 8'][self.region]:
                 print ("    file {} already downloaded".format(ID))
                 continue
 
@@ -274,7 +281,6 @@ class Landsat:
             downloaded_files['Landsat 8'][self.region].append(ID)
 
             #create path and folder for the scene
-            date_path = os.path.join(self.path, self.region, ID)
             os.makedirs(date_path)
 
             #file size
@@ -301,6 +307,3 @@ class Landsat:
         # Save the new list of files
         with open(os.path.join(self.path, 'downloaded_files.json'), 'w') as outfile:
             json.dump(downloaded_files, outfile)
-
-
-        return self.metadata

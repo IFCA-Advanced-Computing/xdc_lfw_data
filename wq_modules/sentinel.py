@@ -32,6 +32,7 @@ Date: Sep 2018
 #imports subfunctions
 from wq_modules import config
 from wq_modules import utils
+from wq_modules import process_sentinel
 
 #imports apis
 import requests
@@ -43,7 +44,7 @@ import json
 
 class Sentinel:
 
-    def __init__(self, inidate, enddate, region):
+    def __init__(self, inidate=0, enddate=0, region='None'):
 
         #data for download files
         self.inidate = inidate.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -52,10 +53,7 @@ class Sentinel:
         self.coord = config.regions[region]["coordinates"]
 
         #metadata of the data
-        self.metadata = {'region': region, # place / reservoir / name of the list
-                         'id': config.regions[region]["id"],
-                         'coord': config.regions[region]["coordinates"]
-                         }
+        self.output = {}
 
         #work path
         self.path = config.datasets_path
@@ -198,28 +196,35 @@ class Sentinel:
 
         for product in products:
 
-            self.metadata['date'] = (product['summary'].split(',')[0]).split(' ')[-1]
-            filename = product['title']
-            self.metadata['filename'] = filename
-
             ID = product['id']
-            self.metadata['identifier'] = ID
+            filename = product['title']
 
-            if ID in downloaded_files['Sentinel-2'][self.metadata['region']]:
+            self.output[ID] = {}
+            self.output[ID]['region'] = self.region
+            self.output[ID]['coord'] = self.coord
+            self.output[ID]['date'] = (product['summary'].split(',')[0]).split(' ')[-1]
+            self.output[ID]['filename'] = filename
+
+            date_path = os.path.join(self.path, self.region, ID)
+            self.output[ID]['path'] = date_path
+
+            if ID in downloaded_files['Sentinel-2'][self.region]:
                 print ("    file {} already downloaded".format(ID))
                 continue
-
-            print ('    Downloading {} files'.format(ID))
-            downloaded_files['Landsat 8'][self.region].append(ID)
-
-            #create path and folder for the scene
-            date_path = os.path.join(self.path, self.region, ID)
-            os.makedirs(date_path)
-
+            
             #file size
             download_url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('{}')/$value".format(ID)
             resp = session.get(download_url, stream=True, allow_redirects=True)
             total_size = int(resp.headers['content-Length'])
+            
+            if total_size <= 250000000:
+                continue
+            
+            #create path and folder for the scene
+            os.makedirs(date_path)
+
+            print ('    Downloading {} files'.format(ID))
+            downloaded_files['Sentinel-2'][self.region].append(ID)
 
             with tqdm(total=total_size, unit_scale=True, unit='B') as pbar:
                 with session.get(download_url, auth =session.auth, stream=True, allow_redirects=True) as r:
@@ -231,9 +236,9 @@ class Sentinel:
                                 pbar.update(chunk_size)
 
             utils.unzip_zipfile(filename, date_path)
+            s = process_sentinel.preprocess_sentinel(date_path, self.region)
+            s.tiff_to_netcdf()
 
         # Save the new list of files
         with open(os.path.join(self.path, 'downloaded_files.json'), 'w') as outfile:
             json.dump(downloaded_files, outfile)
-
-        return self.metadata

@@ -23,96 +23,79 @@ Created on Wed Jul 18 13:07:32 2018
 #from skimage import filters
 import os
 import numpy as np
+from skimage import filters 
 
 from wq_modules import utils
 from wq_modules import config
 from wq_modules import sentinel
 from wq_modules import landsat
+from wq_modules import clouds
 
 
-def water_mask(platform, date_path):
+def water_mask(inidate, enddate, region):
     """ Given a satellite image, returns the water mask
         image: netCDF file
     """
-    
-    if platform == "Sentinel2":
-        
-        band_list = ['B3', 'B8']
+
+    s = sentinel.Sentinel(inidate, enddate, region)
+    s.download()
+    sentinel_files = s.__dict__['output']
+
+    l = landsat.Landsat(inidate, enddate, region)
+    l.download()
+    landsat_files = l.__dict__['output']
+
+    for file in sentinel_files:
+
+        date_path = sentinel_files[file]['path']
+
+        if 'Water.nc' in os.listdir(date_path):
+            continue
+
+        mask_cloud = clouds.mask('Sentinel-2', date_path)
+
+        band_list = ['B03', 'B08']
         lon, lat, bands = utils.load_bands(date_path, band_list)
+
+        # Divide values by 10000 if bands downloaded from Google Earth API
+        for k, v in bands.items():
+            bands[k] = v / 10000.
+
+        mndwi = (bands['B03'] - bands['B08']) /(bands['B03'] + bands['B08'])
         
-        mndwi = (bands['B3'] - bands['B8']) /(bands['B3'] + bands['B8'])
-        threshold = filters.threshold_otsu(mndwi)
+        threshold = filters.threshold_otsu(mndwi.data)
         water_mask = (mndwi > threshold)
-    
-    elif platform == "Landsat8":
+        water_mask = water_mask * (not mask_cloud.all())
         
+         #create de netCDF4 file
+        utils.create_netCDF(date_path, water_mask, lat, lon, 'Water')
+
+    for file in landsat_files:
+
+        date_path = landsat_files[file]['path']
+        
+        if 'Water.nc' in os.listdir(date_path):
+            continue
+
+        mask_cloud = clouds.mask('Landsat8', date_path)
+
         band_list = ['B3', 'B5']
         lon, lat, bands = utils.load_bands(date_path, band_list)
-        
+
         mndwi = (bands['B3'] - bands['B5']) /(bands['B3'] + bands['B5'])
-        threshold = filters.threshold_otsu(mndwi)
+        
+        threshold = filters.threshold_otsu(mndwi.data)
         water_mask = (mndwi > threshold)
-        print (water_mask)
-    
-    return lon, lat, water_mask
-
-
-def create_water_mask(inidate, enddate, region):
-    """ Given a satellite image, returns the water mask
-        image: netCDF file
-    """
-    
-    sentinel_files = sentinel2.get_sentinel2_raw(inidate,enddate,region)
-    landsat_files = landsat8.get_landsat8_raw(inidate,enddate,region)
-    
-    datasets_path = config.satelite_info['data_path']
-    products = []
-
-    #sentinel 2 cloud_mask
-    for f in sentinel_files:
-        
-        #check if the water mask already done
-        date_path = os.path.join(datasets_path, region, f)
-        if 'Water.nc' in os.listdir(date_path):
-            continue
-        
-        lon, lat, water = water_mask("Sentinel2", date_path)
+        water_mask = water_mask * (not mask_cloud.all())
         
         #create de netCDF4 file
-        utils.create_netCDF(date_path, water, lat, lon, 'Water')
-        
-        #json
-        products.append('{}.Water.nc'.format(date_path))
-    
-    for f in landsat_files:
-        
-        #check if the water mask already done
-        date_path = os.path.join(datasets_path, region, f)
-        if 'Water.nc' in os.listdir(date_path):
-            continue
-        
-        lon, lat, water = water_mask("Landsat8", date_path)
-        
-        #create de netCDF4 file
-        utils.create_netCDF(date_path, water, lat, lon, 'Water')
-        
-        #json
-        products.append('{}.Water.nc'.format(date_path))
-    
-    #json
-    data = {'downloaded':{'sentinel 2': sentinel_files, 'landsat 8': landsat_files},
-            'action': products}
-    
-    return data
+        utils.create_netCDF(date_path, water_mask, lat, lon, 'Water')
 
 
 def water_surface(inidate, enddate, region):
     """ Given a satellite image, returns the water surface
         image: file
     """
-    
-    sentinel_files = sentinel2.get_sentinel2_raw(inidate, enddate, region)
-    landsat_files = landsat8.get_landsat8_raw(inidate ,enddate, region)
     
     datasets_path = config.satelite_info['data_path']
     reservoir_path = os.path.join(datasets_path, region)
