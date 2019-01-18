@@ -23,37 +23,92 @@ Created on Wed Jul 18 13:07:32 2018
 #from skimage import filters
 import os
 import numpy as np
-from skimage import filters 
+from skimage import filters
+import matplotlib.pyplot as plt 
 
 from wq_modules import utils
-from wq_modules import config
 from wq_modules import sentinel
 from wq_modules import landsat
-from wq_modules import clouds
+#from wq_modules import clouds
 
 
-def water_mask(inidate, enddate, region):
-    """ Given a satellite image, returns the water mask
-        image: netCDF file
+def main_water(inidate, enddate, region, action):
     """
-
+        Dowloand Sentinel and landsat files and chose de subfuncion
+    """
+    
+    #download sentinel files
     s = sentinel.Sentinel(inidate, enddate, region)
     s.download()
     sentinel_files = s.__dict__['output']
 
+    #download landsat files
     l = landsat.Landsat(inidate, enddate, region)
     l.download()
     landsat_files = l.__dict__['output']
+    
+    if action == 'water_mask':
+        for file in sentinel_files:
+            
+            date_path = sentinel_files[file]['path']    
+            lon, lat, water_mask = mask("Sentinel-2", date_path)
+            
+            if 'Water.nc' in os.listdir(date_path):
+                continue
+        
+            #create de netCDF4 file
+            utils.create_netCDF(date_path, water_mask, lat, lon, 'Water')
+        
+        for file in landsat_files:
+            
+            date_path = landsat_files[file]['path']
+            lon, lat, water_mask = mask("Landsat8", date_path)
+            
+            if 'Water.nc' in os.listdir(date_path):
+                continue
+        
+            #create de netCDF4 file
+            utils.create_netCDF(date_path, water_mask, lat, lon, 'Water')
+    
+    elif action == 'water_surface':
+        for file in sentinel_files:
+            
+            date_path = sentinel_files[file]['path']
+            surface("Sentinel-2", date_path)
+            
+        for file in landsat_files:
+            
+            date_path = landsat_files[file]['path']
+            surface("Landsat8", date_path)
+    
+    return sentinel_files, landsat_files
 
-    for file in sentinel_files:
 
-        date_path = sentinel_files[file]['path']
+def surface(platform, date_path):
+    """ Given a satellite image, returns the water surface
+        image: file
+    """
 
-        if 'Water.nc' in os.listdir(date_path):
-            continue
+    lon, lat, water_mask = mask(platform, date_path)
 
-        mask_cloud = clouds.mask('Sentinel-2', date_path)
+    pixel_area = utils.get_pixel_area(lon, lat)
+    water_surface = np.sum(water_mask) * pixel_area
+    print ('Area:  {} Hectareas'.format(water_surface/10000))
+ 
+    #create csv data(headers)
+    csv_headers = ['file', 'pixel_area (m2)', 'water_surface (Hectares)']
+    row = [date_path, pixel_area, water_surface]
+    csv_data =[csv_headers]
+    csv_data.append(row)
+    
+    #save csv file
+    np.savetxt(os.path.join(date_path, 'water_surface.csv'), csv_data, fmt='%s', delimiter=",")
 
+
+def mask(platform, date_path):
+    
+    if platform == 'Sentinel-2':
+        
         band_list = ['B03', 'B08']
         lon, lat, bands = utils.load_bands(date_path, band_list)
 
@@ -62,77 +117,31 @@ def water_mask(inidate, enddate, region):
             bands[k] = v / 10000.
 
         mndwi = (bands['B03'] - bands['B08']) /(bands['B03'] + bands['B08'])
-        
         threshold = filters.threshold_otsu(mndwi.data)
         water_mask = (mndwi > threshold)
-        water_mask = water_mask * (not mask_cloud.all())
+#        water_mask = water_mask * (not mask_cloud.all())
         
-         #create de netCDF4 file
-        utils.create_netCDF(date_path, water_mask, lat, lon, 'Water')
-
-    for file in landsat_files:
-
-        date_path = landsat_files[file]['path']
-        
-        if 'Water.nc' in os.listdir(date_path):
-            continue
-
-        mask_cloud = clouds.mask('Landsat8', date_path)
-
+    elif platform == 'Landsat8':
+    
         band_list = ['B3', 'B5']
         lon, lat, bands = utils.load_bands(date_path, band_list)
 
         mndwi = (bands['B3'] - bands['B5']) /(bands['B3'] + bands['B5'])
-        
         threshold = filters.threshold_otsu(mndwi.data)
         water_mask = (mndwi > threshold)
-        water_mask = water_mask * (not mask_cloud.all())
-        
-        #create de netCDF4 file
-        utils.create_netCDF(date_path, water_mask, lat, lon, 'Water')
+#        water_mask = water_mask * (not mask_cloud.all())
+    
+    #plot
+    plot_mask(mndwi, water_mask)
+    return lon, lat, water_mask
 
 
-def water_surface(inidate, enddate, region):
-    """ Given a satellite image, returns the water surface
-        image: file
-    """
+def plot_mask(mndwi, water_mask):
     
-    datasets_path = config.satelite_info['data_path']
-    reservoir_path = os.path.join(datasets_path, region)
-    
-    #create csv data(headers)
-    csv_headers = ['file', 'pixel_area', 'water_surface']
-    csv_data =[csv_headers]
-     
-    #sentinel 2 water_mask
-    for f in sentinel_files: 
-        
-        date_path = os.path.join(datasets_path, region, f)
-        lon, lat, water = water_mask("Sentinel2", date_path)
-        
-        pixel_area = utils.get_pixel_area(date_path, ["B1"])
-        
-        #create csv row
-        row = [f, pixel_area, pixel_area*(np.sum(water))]
-        csv_data.append(row)
-        
-    #landsat 8 water_mask
-    for f in landsat_files: 
-        
-        date_path = os.path.join(datasets_path, region, f)
-        lon, lat, water = water_mask("Landsat8", date_path)
-        
-        pixel_area = utils.get_pixel_area(date_path, ["B1"])
-        
-        #create csv row
-        row = [f, pixel_area, pixel_area*(np.sum(water))]
-        csv_data.append(row)
-        
-    #save csv file
-    np.savetxt(os.path.join(reservoir_path, 'water_{}.csv'.format(region)), csv_data, fmt='%s', delimiter=",")
-    
-    #json
-    data = {'downloaded':{'sentinel 2': sentinel_files, 'landsat 8': landsat_files},
-            'action': os.path.join(reservoir_path, '{}.csv'.format(region))}
-    
-    return data
+    plt.figure(1)
+    plt.subplot(121)
+    plt.imshow(mndwi)
+
+    plt.subplot(122)
+    plt.imshow(water_mask)
+    plt.show()

@@ -20,13 +20,6 @@ Satellite utils
 Author: Daniel Garcia
 Date: May 2018
 """
-import requests
-import imageio
-import shutil
-import io
-import utm
-from netCDF4 import Dataset
-import numpy as np
 
 #Submodules
 from wq_modules import config
@@ -34,9 +27,12 @@ from wq_modules import config
 #APIs
 import zipfile, tarfile
 import argparse
+import numpy as np
 import os
 import json
 import datetime
+import utm
+from netCDF4 import Dataset
 from six import string_types
 
 
@@ -252,3 +248,12 @@ def create_netCDF(path, mask, lat, lon, name):
     Band1[:,:] = mask
 
     ncfile.close
+    
+def get_pixel_area(longitude, latitude):
+    """
+    Compute the new pixel area after the lat_long --> meters conversion
+    """
+
+    scale_x = np.mean(longitude[1:] - longitude[:-1])
+    scale_y = np.mean(latitude[1:] - latitude[:-1])
+    return scale_x * scale_y

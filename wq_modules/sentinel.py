@@ -199,6 +199,15 @@ class Sentinel:
             ID = product['id']
             filename = product['title']
 
+            #file size
+            download_url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('{}')/$value".format(ID)
+            resp = session.get(download_url, stream=True, allow_redirects=True)
+            total_size = int(resp.headers['content-Length'])
+            
+            if total_size <= 250000000:
+                continue
+
+            #Metadata for Onedata
             self.output[ID] = {}
             self.output[ID]['region'] = self.region
             self.output[ID]['coord'] = self.coord
@@ -210,14 +219,6 @@ class Sentinel:
 
             if ID in downloaded_files['Sentinel-2'][self.region]:
                 print ("    file {} already downloaded".format(ID))
-                continue
-            
-            #file size
-            download_url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('{}')/$value".format(ID)
-            resp = session.get(download_url, stream=True, allow_redirects=True)
-            total_size = int(resp.headers['content-Length'])
-            
-            if total_size <= 250000000:
                 continue
             
             #create path and folder for the scene
