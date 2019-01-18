@@ -1,13 +1,10 @@
 #!/usr/bin/python3
 import argparse
-import datetime
 
 from wq_modules import config
 from wq_modules import clouds
 from wq_modules import water
 from wq_modules import utils
-from wq_modules import sentinel
-from wq_modules import landsat
 
 parser = argparse.ArgumentParser(description='Gets data from satellite')
 
@@ -59,20 +56,10 @@ utils.path_configurations(path)
 #Action management
 if args.action is not None:
 
-#    if args.action == 'cloud_coverage':
-#
-#        json_cloud_coverage = clouds.cloud_coverage(args.start_date, args.end_date, args.region)
-#        print(json_cloud_coverage)
-#
-#    elif args.action == 'water_surface':
-#
-#        json_water_surface = water.water_surface(args.start_date, args.end_date, args.region)
-#        print(json_water_surface)
-#
-    if args.action == 'water_mask':
+    if args.action == 'water_mask' or args.action == 'water_surface':
 
-        water.water_mask(sd, ed, args.region)
+        sentinel, landsat = water.main_water(sd, ed, args.region, args.action)
     
-    elif args.action == 'cloud_mask':
+    elif args.action == 'cloud_mask' or args.action == 'cloud_coverage':
         
-        clouds.cloud_mask(sd, ed, args.region)
+        sentinel, landsat = clouds.main_cloud(sd, ed, args.region, args.action)
