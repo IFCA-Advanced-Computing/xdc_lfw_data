@@ -129,18 +129,24 @@ def path_configurations(path):
     ----------
     path : datasets path from config file
     """
+    list_region = config.regions
 
     try:
-        with open(os.path.join(path, 'downloaded_files.json')) as data_file:    
+        with open(os.path.join(path, 'downloaded_files.json')) as data_file:
             json.load(data_file)
     except:
         if not (os.path.isdir(path)):
             os.mkdir(path)
 
-        dictionary = {"Sentinel-2": {"CdP": [], "Francia": [], "Niger": []},
-                    "Landsat 8": {"CdP": [], "Francia": [], "Niger": []}}
+        dictionary = {"Sentinel-2": {}, "Landsat 8": {}}
 
-        with open(os.path.join(path, 'downloaded_files.json'), 'w') as outfile:                
+        for region in list_region:
+
+            os.mkdir(os.path.join(path, region))
+            dictionary['Sentinel-2'][region] = []
+            dictionary['Landsat 8'][region] = []
+
+        with open(os.path.join(path, 'downloaded_files.json'), 'w') as outfile:
             json.dump(dictionary, outfile)
 
 
