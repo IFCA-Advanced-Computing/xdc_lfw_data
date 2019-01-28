@@ -264,11 +264,14 @@ class Landsat:
 
             #Metadata file
             self.output[ID] = {}
-            self.output[ID]['date'] = self.acquisitionDate
             self.output[ID]['file'] = self.displayId
-            self.output[ID]['id_file'] = self.entityId
+            self.output[ID]['inidate'] = self.acquisitionDate
+            self.output[ID]['enddate'] = self.acquisitionDate
             self.output[ID]['region'] = self.region
-            self.output[ID]['coord'] = self.coord
+            self.output[ID]['W'] = self.coord['W']
+            self.output[ID]['E'] = self.coord['E']
+            self.output[ID]['N'] = self.coord['N']
+            self.output[ID]['S'] = self.coord['S']
 
             date_path = os.path.join(self.path, self.region, ID)
             self.output[ID]['path'] = date_path

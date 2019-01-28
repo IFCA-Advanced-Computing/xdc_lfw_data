@@ -209,10 +209,14 @@ class Sentinel:
 
             #Metadata for Onedata
             self.output[ID] = {}
-            self.output[ID]['region'] = self.region
-            self.output[ID]['coord'] = self.coord
-            self.output[ID]['date'] = (product['summary'].split(',')[0]).split(' ')[-1]
             self.output[ID]['filename'] = filename
+            self.output[ID]['inidate'] = (product['summary'].split(',')[0]).split(' ')[-1]
+            self.output[ID]['enddate'] = (product['summary'].split(',')[0]).split(' ')[-1]
+            self.output[ID]['region'] = self.region
+            self.output[ID]['W'] = self.coord['W']
+            self.output[ID]['E'] = self.coord['E']
+            self.output[ID]['N'] = self.coord['N']
+            self.output[ID]['S'] = self.coord['S']
 
             date_path = os.path.join(self.path, self.region, ID)
             self.output[ID]['path'] = date_path
@@ -243,3 +247,4 @@ class Sentinel:
         # Save the new list of files
         with open(os.path.join(self.path, 'downloaded_files.json'), 'w') as outfile:
             json.dump(downloaded_files, outfile)
+    

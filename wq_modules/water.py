@@ -20,7 +20,6 @@ Created on Wed Jul 18 13:07:32 2018
 @author: daniel
 """
 #imports here
-#from skimage import filters
 import os
 import numpy as np
 from skimage import filters
@@ -119,17 +118,24 @@ def mask(platform, date_path):
         mndwi = (bands['B03'] - bands['B08']) /(bands['B03'] + bands['B08'])
         threshold = filters.threshold_otsu(mndwi.data)
         water_mask = (mndwi > threshold)
-#        water_mask = water_mask * (not mask_cloud.all())
         
     elif platform == 'Landsat8':
     
-        band_list = ['B3', 'B5']
+        band_list = ['B1', 'B2', 'B3', 'B4', 'B5']
         lon, lat, bands = utils.load_bands(date_path, band_list)
 
+        #MNDWI
         mndwi = (bands['B3'] - bands['B5']) /(bands['B3'] + bands['B5'])
+        #Clouds
+        mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
+        mask_cloud = mask_cloud.astype(np.float32)
+        
         threshold = filters.threshold_otsu(mndwi.data)
         water_mask = (mndwi > threshold)
-#        water_mask = water_mask * (not mask_cloud.all())
+        water_mask = water_mask.astype(np.float32)
+        
+        water_mask = water_mask - mask_cloud
+        water_mask = water_mask.clip(min=0)
     
     #plot
     plot_mask(mndwi, water_mask)
@@ -140,8 +146,8 @@ def plot_mask(mndwi, water_mask):
     
     plt.figure(1)
     plt.subplot(121)
-    plt.imshow(mndwi)
+    plt.imshow(mndwi, origin='lower')
 
     plt.subplot(122)
-    plt.imshow(water_mask)
+    plt.imshow(water_mask, origin='lower')
     plt.show()
