@@ -129,6 +129,7 @@ def path_configurations(path):
     ----------
     path : datasets path from config file
     """
+
     list_region = config.regions
 
     try:
@@ -232,7 +233,7 @@ def tiff_to_netcdf(date_path):
 
 def create_netCDF(path, mask, lat, lon, name):
     """
-    Sub-function used on: cloud.cloud_mask.
+    Sub-function used on: cloud.cloud_mask & water.water_mask
     Create a NetCDF file with mask: clouds, water, ...
     """
     #create de netCDF4 file

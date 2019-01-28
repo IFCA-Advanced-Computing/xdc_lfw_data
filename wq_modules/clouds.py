@@ -85,13 +85,14 @@ def mask(platform, date_path):
         # Divide values by 10000 if bands downloaded from Google Earth API
         for k, v in bands.items():
             bands[k] = v / 10000.
-    
-#        ndsi = (bands['B03'] - bands['B11']) / (bands['B03'] + bands['B11']) #vegetation index
+        
+#        B11_resize = np.resize(bands['B11'], bands['B03'].shape)
+#        ndsi = (bands['B03'] - B11_resize) / (bands['B03'] + B11_resize) #vegetation index
     
         #filters to discriminate clouds
         mask_cloud = (bands['B04'] > 0.07) * (bands['B04'] < 0.25) # are passed to Step 1.b 
 #        mask_cloud = bands['B04'] > 0.25 # Clouds , are passed to step2
-#        mask_cloud = mask_cloud + mask_potential_cloud * (ndsi > -0.16)) # are passed to Step 2
+#        mask_cloud = mask_cloud + (mask_potential_cloud * (ndsi.data > -0.16)) # are passed to Step 2
         
     elif platform == 'Landsat8':
         
@@ -102,7 +103,7 @@ def mask(platform, date_path):
         mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
 
     plt.figure(1)
-    plt.imshow(mask_cloud)
+    plt.imshow(mask_cloud, origin='lower')
     plt.show()
     return lon, lat, mask_cloud
         
@@ -115,6 +116,11 @@ def cloud_coverage(platform, date_path):
     
     lon, lat, mask_cloud = mask(platform, date_path)
     coverage = round((np.sum(mask_cloud) * 100) / (mask_cloud.shape[0] * mask_cloud.shape[1]), 2)
+    
+    plt.figure(1)
+    plt.imshow(mask_cloud, origin='lower')
+    plt.show()
+    
     print ('Cloud coverage:   {} %'.format(coverage))
     
     #create csv data(headers)
