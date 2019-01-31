@@ -94,6 +94,47 @@ def gen_uniform_output_bct(out_dic,output,ini_date,end_date):
         i = i + 1
     f.close()
 
+def csv_to_bct(out_dic,output,input_csv,ini_date,end_date):
+    f = open(output, 'w')
+    j = 1
+    for e in out_dic:
+        data = pd.read_csv(input_csv+e+'.csv',delimiter=';')
+        print("Opening ",input_csv+e+'.csv')
+        data['date'] = pd.to_datetime(data['date'])
+        line = ''
+        #Check date
+        if (data['date'].min() <= ini_date):
+            i = 0
+            f.write("table-name           'Boundary Section : %i'\n" %j)
+            f.write("contents             'Logarithmic         '\n")
+            f.write("location             '" + e + "               '\n")
+            f.write("time-function        'non-equidistant'\n")
+            f.write("reference-time       " + ini_date.strftime("%Y%m%d") + "\n")
+            f.write("time-unit            'minutes'\n")
+            f.write("interpolation        'linear'\n")
+            f.write("parameter            'time                '                     unit '[min]'\n")
+            f.write("parameter            'total discharge (t)  end A'               unit '[m3/s]'\n")
+            f.write("parameter            'total discharge (t)  end B'               unit '[m3/s]'\n")
+            if (data['date'][len(data['date'])-1] < end_date):
+                f.write("records-in-table    %i\n" % (len(data['date'])+1))
+            else:
+                f.write("records-in-table    %i\n" % len(data['date']))
+            while i < len(data['date']):
+                if (data['date'][i] >= ini_date) and (data['date'][i] <= end_date):
+                    if (len(line) == 0) and (data['date'][i] != ini_date):
+                        line = "0 %5.2f 9.9999900e+002\n" % (data['Flow'][i])
+                        f.write(line)
+                    line = "%i %5.2f 9.9999900e+002\n" % ((data['date'][i]-ini_date).seconds/60, data['Flow'][i])
+                    f.write(line)
+                i = i + 1
+            if (data['date'][i-1] != end_date):
+                line = "%i %5.2f 9.9999900e+002\n" % (minutes_between_date(ini_date,end_date), data['Flow'][i-1])
+                f.write(line)
+            j = j + 1
+        else:
+            print('Invalid Output flow file')
+    f.close()
+
 def gen_uniform_output_bcc(out_dic,output,ini_date,end_date):
     f = open(output, 'w')
     i = 1
@@ -128,7 +169,7 @@ def gen_uniform_output_bcc(out_dic,output,ini_date,end_date):
             f.write("%i %5.2f %5.2f\n" % (minutes_between_date(ini_date,end_date),out_dic[e]['Temperature'],out_dic[e]['Temperature']))
         else:
             print("ERROR: Missing Salinity/Temperature for bcc")  
-        i = i + 1
+        
     f.close()
 
 def gen_uniform_intput_dis(in_dic,output,ini_date,end_date):
@@ -152,6 +193,49 @@ def gen_uniform_intput_dis(in_dic,output,ini_date,end_date):
         i = i + 1
     f.close()
 
+def csv_to_dis(in_dic,output_folder,output_name,ini_date,end_date):
+    f = open(output_name, 'w')
+    j = 1
+
+    for e in in_dic:
+        data = pd.read_csv(output_folder+e+'.csv',delimiter=';')
+        print("Opening ",output_folder+e+'.csv')
+        data['date'] = pd.to_datetime(data['date'])
+        line = ''
+        #Check date
+        if (data['date'].min() <= ini_date):
+            i = 0
+            f.write("table-name          'Discharge : %i'\n" % j)
+            f.write("contents            'walking   '\n")
+            f.write("location            '"+ e + "               '\n")
+            f.write("time-function       'non-equidistant'\n")
+            f.write("reference-time       " + ini_date.strftime("%Y%m%d") + "\n")
+            f.write("time-unit           'minutes'\n")
+            f.write("interpolation       'block'\n")
+            f.write("parameter           'time                '                     unit '[min]'\n")
+            f.write("parameter           'flux/discharge rate '                     unit '[m3/s]'\n")
+            f.write("parameter           'Salinity            '                     unit '[ppt]'\n")
+            f.write("parameter           'Temperature         '                     unit '[C]'\n")
+            if (data['date'][len(data['date'])-1] < end_date):
+                f.write("records-in-table    %i\n" % (len(data['date'])+1))
+            else:
+                f.write("records-in-table    %i\n" % len(data['date']))
+            while i < len(data['date']):
+                if (data['date'][i] >= ini_date) and (data['date'][i] <= end_date):
+                    if (len(line) == 0) and (data['date'][i] != ini_date):
+                        line = "0 %5.2f %5.2f %5.2f\n" % (data['Flow'][i],data['Sal'][i],data['Temp'][i])
+                        f.write(line)
+                    line = "%i %5.2f %5.2f %5.2f\n" % ((data['date'][i]-ini_date).seconds/60, data['Flow'][i],data['Sal'][i],data['Temp'][i])
+                    f.write(line)
+                i = i + 1
+            if (data['date'][i-1] != end_date):
+                line = "%i %5.2f %5.2f %5.2f\n" % (minutes_between_date(ini_date,end_date), data['Flow'][i-1],data['Sal'][i-1],data['Temp'][i-1])
+                f.write(line)
+            j = j + 1
+        else:
+            print('Invalid Tributary file')
+
+    f.close()
 #TODO eliminate (only for testing)
 #for line in f1:
 #    if "Itdate=" in line or "Itdate =" in line:
@@ -164,8 +248,8 @@ f1 = open('test_1.mdf','r')
 f2 = open('test_1_v2.mdf','w')
 
 #Parameters
-ini_date_str = '2016-01-01 00:00:00'
-end_date_str = '2016-04-05 00:00:00'
+ini_date_str = '2012-01-01 00:00:00'
+end_date_str = '2012-01-05 00:00:00'
 
 fmt = '%Y-%m-%d %H:%M:%S'
 ini_date = datetime.strptime(ini_date_str, fmt)
@@ -209,7 +293,9 @@ print("Getting data")
 #Uniform output
 out_dic = {'Presa': 0.5}
 presa_bct = 'Presa.bct'
-gen_uniform_output_bct(out_dic,presa_bct,ini_date,end_date)
+input_csv = 'data/'
+csv_to_bct(out_dic,presa_bct,input_csv,ini_date,end_date)
+#gen_uniform_output_bct(out_dic,presa_bct,ini_date,end_date)
 
 out_dic = {'Presa': {'Temperature': 12.5, 'Salinity': 0.03}}
 presa_bcc = 'Presa.bcc'
@@ -217,7 +303,11 @@ gen_uniform_output_bcc(out_dic,presa_bcc,ini_date,end_date)
 
 input_dic = {'Duero': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Revinuesa': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Ebrillos': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Dehesa': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Remonicio': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}}
 input_dis = 'tributaries.dis'
-gen_uniform_intput_dis(input_dic,input_dis,ini_date,end_date)
+input_dis_csv_folder = 'data/'
+try:
+    csv_to_dis(input_dic,input_dis_csv_folder,input_dis,ini_date,end_date)
+except:
+    gen_uniform_intput_dis(input_dic,input_dis,ini_date,end_date)
 
 #Parameters update
 dic = {'Itdate': "#"+ini_date.strftime('%Y-%m-%d')+"#\n", 
