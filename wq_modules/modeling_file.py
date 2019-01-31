@@ -18,6 +18,10 @@ def update_param_value(dic,f1):
             f2.write(line.replace(line,line[0:line.find('=')]+" = "+dic[line[0:line.find('=')]]))
         elif line[0:line.find('=')-1] in dic:
             f2.write(line.replace(line, line[0:line.find('=')-1]+" = "+dic[ line[0:line.find('=')-1]]))
+        elif line[0:line.find('=')-2] in dic:
+            f2.write(line.replace(line, line[0:line.find('=')-2]+"  = "+dic[ line[0:line.find('=')-2]]))
+        elif line[0:line.find('=')-3] in dic:
+            f2.write(line.replace(line, line[0:line.find('=')-3]+"   = "+dic[ line[0:line.find('=')-3]]))
         else:
             f2.write(line)
     return f2
