@@ -166,13 +166,7 @@ class Meteo:
         return salidaInformacion
 
     def get_meteo(self):
-        #onedata mode
-        if (config.onedata_mode == 1):
-            datasets_path = '/onedata/' + config.onedata_user + '/' + config.onedata_space + '/' + config.download_datasets
-        else:
-            datasets_path = '.' + config.download_datasets
-   
-        self.general_name = datasets_path + '/' + self.region + '/' + "meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')
+        self.general_name = self.path + '/' + self.region + '/' + "meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')
 
         self.station = self.find_station() #TODO add lat/lon
         print(self.station)
