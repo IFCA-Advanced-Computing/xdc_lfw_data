@@ -17,5 +17,4 @@ celery
 tqdm
 requests
 utm
-csv
 pandas
