@@ -238,90 +238,90 @@ def csv_to_dis(in_dic,output_folder,output_name,ini_date,end_date):
 #            f2.write(line.replace(line[-12:-2],'2010-01-01'))
 #    else:
 #        f2.write(line)
-print("miau")
-f1 = open('test_1.mdf','r')
-f2 = open('test_1_v2.mdf','w')
+#print("miau")
+#f1 = open('test_1.mdf','r')
+#f2 = open('test_1_v2.mdf','w')
 
 #Parameters
-ini_date_str = '2012-01-01 00:00:00'
-end_date_str = '2012-01-05 00:00:00'
+#ini_date_str = '2012-01-01 00:00:00'
+#end_date_str = '2012-01-05 00:00:00'
 
-fmt = '%Y-%m-%d %H:%M:%S'
-ini_date = datetime.strptime(ini_date_str, fmt)
-end_date = datetime.strptime(end_date_str, fmt)
+#fmt = '%Y-%m-%d %H:%M:%S'
+#ini_date = datetime.strptime(ini_date_str, fmt)
+#end_date = datetime.strptime(end_date_str, fmt)
 
 #Layers
-k = 35
-print(minutes_between_date(ini_date,end_date))
+#k = 35
+#print(minutes_between_date(ini_date,end_date))
 
 #Check Wind file
-print("Searching Wind data")
-print("Getting data")
-wind_input = 'data/wind_test.csv'
-print("Creating file .wnd")
-wind_file_name = "wind_"+ini_date.strftime('%Y-%m-%d%H%M%S')+"_"+end_date.strftime('%Y-%m-%d%H%M%S')+".wnd"
-csv_to_wind(wind_input, ini_date, end_date, wind_file_name)
-print("Wind file created: %s" % wind_file_name)
+#print("Searching Wind data")
+#print("Getting data")
+#wind_input = 'data/wind_test.csv'
+#print("Creating file .wnd")
+#wind_file_name = "wind_"+ini_date.strftime('%Y-%m-%d%H%M%S')+"_"+end_date.strftime('%Y-%m-%d%H%M%S')+".wnd"
+#csv_to_wind(wind_input, ini_date, end_date, wind_file_name)
+#print("Wind file created: %s" % wind_file_name)
 
 
 #Check initial conditions
 #TODO For the moment, only with uniform values
-print("Searching Initial data")
-print("Getting initial data")
-print("Creating initial data file .ini")
-ini_file_name = "initial_"+ini_date.strftime('%Y-%m-%d%H%M%S')+"_"+end_date.strftime('%Y-%m-%d%H%M%S')+".ini"
-print("Initial file created: %s" % ini_file_name)
+#print("Searching Initial data")
+#print("Getting initial data")
+#print("Creating initial data file .ini")
+#ini_file_name = "initial_"+ini_date.strftime('%Y-%m-%d%H%M%S')+"_"+end_date.strftime('%Y-%m-%d%H%M%S')+".ini"
+#print("Initial file created: %s" % ini_file_name)
 
 #Check Radiation file
-print("Searching Radiation data")
-print("Getting data")
-rad_input = 'data/rad_test.csv'
-print("Creating file .tem")
-rad_file_name = "rad_"+ini_date.strftime('%Y-%m-%d%H%M%S')+"_"+end_date.strftime('%Y-%m-%d%H%M%S')+".tem"
-csv_to_tem(rad_input, ini_date, end_date, rad_file_name)
-print("Radiation file created: %s" % rad_file_name)
+#print("Searching Radiation data")
+#print("Getting data")
+#rad_input = 'data/rad_test.csv'
+#print("Creating file .tem")
+#rad_file_name = "rad_"+ini_date.strftime('%Y-%m-%d%H%M%S')+"_"+end_date.strftime('%Y-%m-%d%H%M%S')+".tem"
+#csv_to_tem(rad_input, ini_date, end_date, rad_file_name)
+#print("Radiation file created: %s" % rad_file_name)
 
 #Input-Output flow
-print("Searching flow data")
-print("Getting data")
+#print("Searching flow data")
+#print("Getting data")
 
 #Uniform output
 #out_dic = {'Presa': 0.5}
-out_dic = {1: {'Name': 'Presa', 'Flow': 1.5}}
-presa_bct = 'Presa.bct'
-input_csv = 'data/'
-csv_to_bct(out_dic,presa_bct,input_csv,ini_date,end_date)
+#out_dic = {1: {'Name': 'Presa', 'Flow': 1.5}}
+#presa_bct = 'Presa.bct'
+#input_csv = 'data/'
+#csv_to_bct(out_dic,presa_bct,input_csv,ini_date,end_date)
 #gen_uniform_output_bct(out_dic,presa_bct,ini_date,end_date)
 
 #out_dic = {'Presa': {'Temperature': 12.5, 'Salinity': 0.03}}
-out_dic = {1: {'Name': 'Presa', 'Temperature': 12.5, 'Salinity': 0.03}}
-presa_bcc = 'Presa.bcc'
-gen_uniform_output_bcc(out_dic,presa_bcc,ini_date,end_date)
+#out_dic = {1: {'Name': 'Presa', 'Temperature': 12.5, 'Salinity': 0.03}}
+#presa_bcc = 'Presa.bcc'
+#gen_uniform_output_bcc(out_dic,presa_bcc,ini_date,end_date)
 
 #input_dic = {'Duero': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Revinuesa': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Ebrillos': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Dehesa': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}, 'Remonicio': {'Flow': 0.4, 'Temperature': 12.5, 'Salinity': 0.03}}
-input_dic = {1: {'Name': 'Duero', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}, 2: {'Name': 'Revinuesa', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}, 3: {'Name': 'Ebrillos', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}, 4: {'Name': 'Dehesa', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}, 5: {'Name': 'Remonicio', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}}
-input_dis = 'tributaries.dis'
-input_dis_csv_folder = 'data/'
-try:
-    csv_to_dis(input_dic,input_dis_csv_folder,input_dis,ini_date,end_date)
-except:
-    gen_uniform_intput_dis(input_dic,input_dis,ini_date,end_date)
+#input_dic = {1: {'Name': 'Duero', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}, 2: {'Name': 'Revinuesa', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}, 3: {'Name': 'Ebrillos', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}, 4: {'Name': 'Dehesa', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}, 5: {'Name': 'Remonicio', 'Salinity': 0.03, 'Temperature': 12.5, 'Flow': 0.4}}
+#input_dis = 'tributaries.dis'
+#input_dis_csv_folder = 'data/'
+#try:
+#    csv_to_dis(input_dic,input_dis_csv_folder,input_dis,ini_date,end_date)
+#except:
+#    gen_uniform_intput_dis(input_dic,input_dis,ini_date,end_date)
 
 #Parameters update
-dic = {'Itdate': "#"+ini_date.strftime('%Y-%m-%d')+"#\n", 
-       'Tstart': "%i\n" % minutes_between_date(datetime.strptime(ini_date.strftime('%Y-%m-%d'),'%Y-%m-%d'),ini_date), 
-       'Tstop': "%i\n" % minutes_between_date(ini_date,end_date),
-       'Filwnd': "#" + wind_file_name + "#\n",
-       'Filtmp': "#" + rad_file_name + "#\n",
-       'FilbcT': "#" + presa_bct + "#\n",
-       'FilbcC':"#" + presa_bcc + "#\n",
-       'Fildis': "#" + input_dis + "#\n",
-       'Zeta0' : "0\n"
-      }
+#dic = {'Itdate': "#"+ini_date.strftime('%Y-%m-%d')+"#\n", 
+#       'Tstart': "%i\n" % minutes_between_date(datetime.strptime(ini_date.strftime('%Y-%m-%d'),'%Y-%m-%d'),ini_date), 
+#       'Tstop': "%i\n" % minutes_between_date(ini_date,end_date),
+#       'Filwnd': "#" + wind_file_name + "#\n",
+#       'Filtmp': "#" + rad_file_name + "#\n",
+#       'FilbcT': "#" + presa_bct + "#\n",
+ #      'FilbcC':"#" + presa_bcc + "#\n",
+ #      'Fildis': "#" + input_dis + "#\n",
+ #      'Zeta0' : "0\n"
+ #     }
 #Update params
-f2 = update_param_value(dic,f1)
+#f2 = update_param_value(dic,f1)
 
-f1.close()
-f2.close()
-os.rename('test_1.mdf', 'test_1_old.mdf')
-os.rename('test_1_v2.mdf', 'test_1.mdf')
+#f1.close()
+#f2.close()
+#os.rename('test_1.mdf', 'test_1_old.mdf')
+#os.rename('test_1_v2.mdf', 'test_1.mdf')
