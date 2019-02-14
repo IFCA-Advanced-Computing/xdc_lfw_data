@@ -8,4 +8,8 @@ rabbitmq-server celery mysql-server libmysqlclient-dev
 Registration required for external data:
 
 https://opendata.aemet.es
- 
+
+Conventions:
+
+CSV input files (delimiter ;, quote: ") 
+Date column: date
