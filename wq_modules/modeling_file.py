@@ -10,9 +10,7 @@ def minutes_between_date(ini_date,end_date):
     minutesDiff = daysDiff * 24 * 60
     return minutesDiff
 
-def update_param_value(dic,f1):
-    print(f1)
-    print(f2)
+def update_param_value(dic,f1,f2):
     for line in f1:
         if line[0:line.find('=')] in dic:
             f2.write(line.replace(line,line[0:line.find('=')]+" = "+dic[line[0:line.find('=')]]))
