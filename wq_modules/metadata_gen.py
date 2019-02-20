@@ -75,14 +75,15 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
 
     #Escribimos los datos en un archivo or onedata attachement
 
-    tree.write(title+".xml",encoding='UTF-8', xml_declaration=True)
+    tree.write(config.datasets_path + '/' + geographicDesc + '/' + title+".xml",encoding='UTF-8', xml_declaration=True)
     
     if (config.onedata_mode == 1):
         header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgYmJlMjEzYzZhZmU4NzkwNmU1NWZkMTVlNTJjZDEyMTMKMDAxYWNpZCB00aW1lIDwgMTU3MTI5NjQxNAowMDJmc2lnbmF00dXJlIBppv00BiBW01o3vP02kwjnGsmliggXhDu1Y9X02SJz1WaPVCg', 'Content-type' : 'application/json'}
         try:
             print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title)
-            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(title+".xml"))
-            print(r.text)
+            print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
+            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(title+".xml"))
+            print("Metadata attachement: %i" % r.status_code)
             os.remove(title+".xml")
         except requests.exceptions.RequestException as e:
             print(e)
@@ -134,21 +135,28 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
 
         #filename.split(".")[-1]
         dataTable=ET.SubElement(dataset,"dataTable")
-        ET.SubElement(dataTable,"FileName").text=title+".csv"
+        ET.SubElement(dataTable,"FileName").text=title
         dataTable = file_block_csv(title,params,dataTable)
 
     tree = ET.ElementTree(eml)
 
     #Escribimos los datos en un archivo or onedata attachement
-    tree.write(title+".xml",encoding='UTF-8', xml_declaration=True)
+    tree.write(config.datasets_path + '/' + geographicDesc + '/' + title+".xml",encoding='UTF-8', xml_declaration=True)
     
     if (config.onedata_mode == 1):
         header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgYmJlMjEzYzZhZmU4NzkwNmU1NWZkMTVlNTJjZDEyMTMKMDAxYWNpZCB00aW1lIDwgMTU3MTI5NjQxNAowMDJmc2lnbmF00dXJlIBppv00BiBW01o3vP02kwjnGsmliggXhDu1Y9X02SJz1WaPVCg', 'Content-type' : 'application/json'}
         try:
+            
+            print (config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
+            print (config.datasets_path + '/' + geographicDesc + '/' + title+".xml")
+            print (header_json)
+            
             print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title)
-            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(title+".xml"))
-            print(r.text)
-            os.remove(title+".xml")
+            print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
+            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
+            print('URL: %s' % r.url)
+            print("Metadata attachement: %i" % r.status_code)
+            os.remove(config.datasets_path + '/' + geographicDesc + '/' + title+".xml")
         except requests.exceptions.RequestException as e:
             print(e)
     print(tree)

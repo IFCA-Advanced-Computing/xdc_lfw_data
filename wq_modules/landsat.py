@@ -25,7 +25,7 @@ inidate: datetime.strptime("YYYY-MM-dd", "%Y-%m-%d")
 enddate: datetime.strptime("YYYY-MM-dd", "%Y-%m-%d")
 region: name of one reservoir saved in the "coord_reservoirs.json" file
 
-Author: Daniel Garcia
+Author: Daniel Garcia Diaz
 Date: Sep 2018
 """
 
@@ -43,7 +43,7 @@ import os
 
 class Landsat:
 
-    def __init__(self, inidate=0, enddate=0, region='None'):
+    def __init__(self, inidate, enddate, region=None, action=None):
         """
         initialize the variables used in the landsat class
 
@@ -59,12 +59,17 @@ class Landsat:
         self.enddate = enddate.strftime("%Y-%m-%dT%H:%M:%SZ")
         self.region = region
         self.coord = config.regions[region]["coordinates"]
+        self.action = action
+        
+        #work path
+        self.onedata_mode = config.onedata_mode
+        if self.onedata_mode == 1:
+            self.path = config.temporal_path
+        else:
+            self.path = config.datasets_path
 
         #metadata of the data
         self.output = {}
-
-        #work path
-        self.path = config.datasets_path
 
         #landsat credentials
         self.credentials = config.landsat_pass
@@ -242,7 +247,6 @@ class Landsat:
     def download(self):
 
         session = requests.session()
-
         rsp = session.get(self.login_url)
         csrf, ncform = self._get_tokens(rsp.text)
 
@@ -257,34 +261,33 @@ class Landsat:
         identifiers = self.search()
         chunk_size=1024
 
-        with open(os.path.join(self.path, 'downloaded_files.json')) as data_file:    
+        with open(os.path.join(self.path, 'downloaded_files.json')) as data_file:
                 downloaded_files = json.load(data_file)
 
         for ID in identifiers:
 
             #Metadata file
             self.output[ID] = {}
-            self.output[ID]['file'] = self.displayId
             self.output[ID]['inidate'] = self.acquisitionDate
             self.output[ID]['enddate'] = self.acquisitionDate
             self.output[ID]['region'] = self.region
-            self.output[ID]['W'] = self.coord['W']
-            self.output[ID]['E'] = self.coord['E']
-            self.output[ID]['N'] = self.coord['N']
-            self.output[ID]['S'] = self.coord['S']
-
-            date_path = os.path.join(self.path, self.region, ID)
-            self.output[ID]['path'] = date_path
-
+            self.output[ID]['W'] = str(self.coord['W'])
+            self.output[ID]['E'] = str(self.coord['E'])
+            self.output[ID]['N'] = str(self.coord['N'])
+            self.output[ID]['S'] = str(self.coord['S'])
+            self.output[ID]['params'] = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'B11']
+            
             if ID in downloaded_files['Landsat 8'][self.region]:
                 print ("    file {} already downloaded".format(ID))
                 continue
+            
+            #create path and folder for the scene
+            date_path = os.path.join(self.path, self.region, ID)
+            self.output[ID]['path'] = date_path
+            os.makedirs(date_path)
 
             print ('    Downloading {} files'.format(ID))
             downloaded_files['Landsat 8'][self.region].append(ID)
-
-            #create path and folder for the scene
-            os.makedirs(date_path)
 
             #file size
             band_url = 'https://earthexplorer.usgs.gov/download/12864/{}/STANDARD/EE'.format(ID)
