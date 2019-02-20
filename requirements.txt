@@ -17,3 +17,4 @@ celery
 tqdm
 requests
 utm
+pandas
