@@ -17,18 +17,19 @@
 """
 Satellite utils
 
-Author: Daniel Garcia
+Author: Daniel Garcia Diaz
 Date: May 2018
 """
 
 #Submodules
 from wq_modules import config
+from wq_modules import metadata_gen
 
 #APIs
 import zipfile, tarfile
 import argparse
 import numpy as np
-import os
+import os, shutil
 import json
 import datetime
 import utm
@@ -38,8 +39,8 @@ from six import string_types
 
 def valid_date(sd, ed):
     """
-    check if the format date input is string("%Y-%m-%d") and return it
-    as format datetime.strptime("YYYY-MM-dd", "%Y-%m-%d")
+    check if the format date input is string("%Y-%m-%d") or datetime.date
+    and return it as format datetime.strptime("YYYY-MM-dd", "%Y-%m-%d")
 
     Parameters
     ----------
@@ -61,7 +62,11 @@ def valid_date(sd, ed):
         Unsupported date value
     """
 
-    if isinstance(sd, string_types) and isinstance(ed, string_types):    
+    if isinstance(sd, datetime.date) and isinstance(ed, datetime.date):
+
+        return sd, ed
+
+    elif isinstance(sd, string_types) and isinstance(ed, string_types):    
         try:
             sd = datetime.datetime.strptime(sd, "%Y-%m-%d")
             ed = datetime.datetime.strptime(ed, "%Y-%m-%d")
@@ -120,9 +125,9 @@ def valid_action(a):
         raise argparse.ArgumentTypeError(msg)
 
 
-def path_configurations(path):
+def path_configurations(onedata_mode):
     """
-    Configure the tree of datasets path. 
+    Configure the tree of datasets path depend of onedata mode. 
     Create the folder and the downloaded_files file.
 
     Parameters
@@ -130,24 +135,42 @@ def path_configurations(path):
     path : datasets path from config file
     """
 
+    file = 'downloaded_files.json'
     list_region = config.regions
 
-    try:
-        with open(os.path.join(path, 'downloaded_files.json')) as data_file:
-            json.load(data_file)
-    except:
-        if not (os.path.isdir(path)):
-            os.mkdir(path)
+    if onedata_mode == 1:
+
+        datasets_path = config.datasets_path
+        temporal_path = config.temporal_path
+        if not os.path.isdir(temporal_path):
+            os.mkdir(temporal_path)
+
+        for region in list_region:
+            if not os.path.isdir(os.path.join(temporal_path, region)):
+                os.mkdir(os.path.join(temporal_path, region))
+
+        shutil.copy(os.path.join(datasets_path, file), temporal_path)
+
+    else:
+
+        datasets_path = config.datasets_path
+
+        try:
+            with open(os.path.join(datasets_path, file)) as data_file:
+                json.load(data_file)
+        except:
+            if not (os.path.isdir(datasets_path)):
+                os.mkdir(datasets_path)
 
         dictionary = {"Sentinel-2": {}, "Landsat 8": {}}
 
         for region in list_region:
 
-            os.mkdir(os.path.join(path, region))
+            os.mkdir(os.path.join(datasets_path, region))
             dictionary['Sentinel-2'][region] = []
             dictionary['Landsat 8'][region] = []
 
-        with open(os.path.join(path, 'downloaded_files.json'), 'w') as outfile:
+        with open(os.path.join(datasets_path, 'downloaded_files.json'), 'w') as outfile:
             json.dump(dictionary, outfile)
 
 
@@ -167,6 +190,42 @@ def unzip_zipfile(local_filename, date_path):
     os.remove(local_filename)
 
 
+def to_onedata(sentinel_files, landsat_files, region):
+
+    #paths
+    datasets_path = config.datasets_path
+    files = {**sentinel_files, **landsat_files}
+    
+    for file in files:
+        
+        try:
+            date_path = files[file]['path']
+        except:
+            continue
+            
+        if os.path.isdir(date_path):
+            try:
+                shutil.move(date_path, os.path.join(datasets_path, region))
+                metadata_gen.metadata_gen(file, files[file]['inidate'], files[file]['enddate'], files[file]['region'], files[file]['N'], files[file]['W'], files[file]['params'])
+
+            except:
+                msg = "impossible to move the {} file to onedata".format(file)
+                raise argparse.ArgumentTypeError(msg)
+
+            shutil.rmtree(date_path, ignore_errors=True)
+
+
+def clean_temporal_path():
+
+    #path
+    datasets_path = config.datasets_path
+    temporal_path = config.temporal_path
+    file = 'downloaded_files.json'
+
+    shutil.copy(os.path.join(temporal_path, file), datasets_path)
+    shutil.rmtree(temporal_path, ignore_errors=True)
+
+
 def load_bands(datepath, band_list):
     """
     Retrieve a dict of band arrays from a date path
@@ -180,16 +239,16 @@ def load_bands(datepath, band_list):
 
             latitude = band.variables['lat'][:] # latitude array
             longitude = band.variables['lon'][:] # longitude array
-        
+
         elif 'y' in band.variables:
             latitude = band.variables['y'][:] # latitude array
             longitude = band.variables['x'][:] # longitude array
-        
+
         else:
             msg = "NetCDF damaged or impossible to read"
             raise argparse.ArgumentTypeError(msg)
-        
-            
+
+
     return longitude, latitude, band_dict
 
 
@@ -255,7 +314,8 @@ def create_netCDF(path, mask, lat, lon, name):
     Band1[:,:] = mask
 
     ncfile.close
-    
+
+
 def get_pixel_area(longitude, latitude):
     """
     Compute the new pixel area after the lat_long --> meters conversion
@@ -264,3 +324,17 @@ def get_pixel_area(longitude, latitude):
     scale_x = np.mean(longitude[1:] - longitude[:-1])
     scale_y = np.mean(latitude[1:] - latitude[:-1])
     return scale_x * scale_y
+
+
+def onedata(region, temporal_path, metadata):
+    """
+    Move the data from temporal folder to onedate after the preprocessing
+    """
+
+    onedata_path = config.datasets_path
+    region_path = os.path.join(onedata_path, region)
+
+    for file in metadata:
+        file_path = os.path.join(temporal_path, file)
+        if os.path.isdir(file_path):
+            shutil.move(file_path, region_path)
