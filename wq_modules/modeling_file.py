@@ -38,6 +38,8 @@ def csv_to_wind(path, ini_date, end_date, output):
                     line = "0 %5.3f %5.3f\n" % (data['speed'][i],data['dir'][i])
                     f.write(line)
                 line = "%i %5.3f %5.3f\n" % ((data['date'][i]-ini_date).seconds/60, data['speed'][i],data['dir'][i])
+                if ((data['date'][i]-ini_date).seconds/60) == 0:
+                    line = "%i %5.3f %5.3f\n" % (minutes_between_date(ini_date,end_date), data['speed'][i],data['dir'][i])
                 f.write(line)
             i = i + 1
         if (data['date'][i-1] != end_date):
@@ -61,6 +63,8 @@ def csv_to_tem(path, ini_date, end_date, output):
                     line = "0 %5.2f %5.2f 0 %5.5f\n" % (data['hum'][i],data['temp'][i],data['rad'][i])
                     f.write(line)
                 line = "%i %5.2f %5.2f 0 %5.5f\n" % ((data['date'][i]-ini_date).seconds/60, data['hum'][i],data['temp'][i],data['rad'][i])
+                if ((data['date'][i]-ini_date).seconds/60) == 0:
+                    line = "%i %5.2f %5.2f 0 %5.5f\n" % (minutes_between_date(ini_date,end_date), data['hum'][i],data['temp'][i],data['rad'][i])
                 f.write(line)
             i = i + 1
         if (data['date'][i-1] != end_date):
