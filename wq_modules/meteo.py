@@ -103,7 +103,6 @@ class Meteo:
             delta = self.enddate-self.inidate
             if (delta.days <31):
                 req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+self.inidate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+self.enddate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+self.station+"/?api_key="+self.credentials
-                print(req)
                 conn.request("GET",req, headers=headers)
                 res = conn.getresponse()
                 dataEstacion = res.read().decode('utf-8')
@@ -124,7 +123,6 @@ class Meteo:
                 temp_end_date = self.inidate + datetime.timedelta(days=30)
                 while(temp_end_date < self.enddate):
                     req = "/opendata/api/valores/climatologicos/diarios/datos/fechaini/"+self.inidate.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/fechafin/"+temp_end_date.strftime('%Y-%m-%d')+"T00%3A00%3A00UTC"+"/estacion/"+self.station+"/?api_key="+self.credentials
-                    print(req)
                     conn.request("GET",req, headers=headers)
                     res = conn.getresponse()
                     dataEstacion = res.read().decode('utf-8')
@@ -139,7 +137,7 @@ class Meteo:
                         try:
                             spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
                         except:
-                            print('punch')
+                            print('Error')
                     conn.close()
                     self.inidate = temp_end_date
                     temp_end_date = self.inidate + datetime.timedelta(days=30)
@@ -160,7 +158,7 @@ class Meteo:
                     try:
                         spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
                     except:
-                        print('punch')
+                        print('Error')
                 conn.close()
         csvfile.close()
         return salidaInformacion
@@ -168,7 +166,7 @@ class Meteo:
     def get_meteo(self):
         self.general_name = self.path + '/' + self.region + '/' + "meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')
         self.station = self.find_station() #TODO add lat/lon
-        print(self.station)
+        print("Selected station: "+self.station)
         tt=self.datosEstacion()
         if (config.onedata_mode == 1):
             metadata_gen.metadata_gen("meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')+'.csv',self.inidate.strftime('%Y-%m-%d'),self.enddate.strftime('%Y-%m-%d'),self.region,str(self.lat),str(self.lon),self.params)
