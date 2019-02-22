@@ -5,7 +5,6 @@ from datetime import datetime
 
 def minutes_between_date(ini_date,end_date):
     daysDiff = (end_date-ini_date).days
-    print(daysDiff)
     # Convert days to minutes
     minutesDiff = daysDiff * 24 * 60
     return minutesDiff
