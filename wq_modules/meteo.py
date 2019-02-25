@@ -173,4 +173,4 @@ class Meteo:
         tt=self.datosEstacion()
         if (config.onedata_mode == 1):
             metadata_gen.metadata_gen(title,beginDate,endDate,self.region,str(self.lat),str(self.lon),self.params)
-        return {"output": title}
+        return {"output": self.general_name + ".csv"}
