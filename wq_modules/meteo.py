@@ -165,9 +165,12 @@ class Meteo:
 
     def get_meteo(self):
         self.general_name = self.path + '/' + self.region + '/' + "meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')
+        title = "meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')+".csv"
+        beginDate = self.inidate.strftime('%Y-%m-%d')
+        endDate = self.enddate.strftime('%Y-%m-%d')
         self.station = self.find_station() #TODO add lat/lon
         print("Selected station: "+self.station)
         tt=self.datosEstacion()
         if (config.onedata_mode == 1):
-            metadata_gen.metadata_gen("meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')+'.csv',self.inidate.strftime('%Y-%m-%d'),self.enddate.strftime('%Y-%m-%d'),self.region,str(self.lat),str(self.lon),self.params)
-        return {"output": self.general_name + ".csv"}
+            metadata_gen.metadata_gen(title,beginDate,endDate,self.region,str(self.lat),str(self.lon),self.params)
+        return {"output": title}
