@@ -80,7 +80,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
     if (config.onedata_mode == 1):
         header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgYmJlMjEzYzZhZmU4NzkwNmU1NWZkMTVlNTJjZDEyMTMKMDAxYWNpZCB00aW1lIDwgMTU3MTI5NjQxNAowMDJmc2lnbmF00dXJlIBppv00BiBW01o3vP02kwjnGsmliggXhDu1Y9X02SJz1WaPVCg', 'Content-type' : 'application/json'}
         try:
-            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title)
+            print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
             print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
             r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(title+".xml"))
             print("Metadata attachement: %i" % r.status_code)
@@ -147,10 +147,8 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
         header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgYmJlMjEzYzZhZmU4NzkwNmU1NWZkMTVlNTJjZDEyMTMKMDAxYWNpZCB00aW1lIDwgMTU3MTI5NjQxNAowMDJmc2lnbmF00dXJlIBppv00BiBW01o3vP02kwjnGsmliggXhDu1Y9X02SJz1WaPVCg', 'Content-type' : 'application/json'}
         try:
             
-            print (config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
-            print (config.datasets_path + '/' + geographicDesc + '/' + title+".xml")
-            print (header_json)
-            
+            print ((config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title)
+                  
             print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + config.download_datasets + geographicDesc + '/' + title)
             print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
             r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
