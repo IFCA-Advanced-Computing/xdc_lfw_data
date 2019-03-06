@@ -142,10 +142,13 @@ def path_configurations(onedata_mode):
 
         onedata_path = config.datasets_path
         local_path = config.local_path
-        os.mkdir(local_path)
+        if not (os.path.isdir(local_path)):
+            os.mkdir(local_path)
 
         for region in list_region:
-            os.mkdir(os.path.join(local_path, region))
+            region_path = os.path.join(local_path, region)
+            if not (os.path.isdir(region_path)):
+                os.mkdir(region_path)
 
         shutil.copy(os.path.join(onedata_path, file), local_path)
 
