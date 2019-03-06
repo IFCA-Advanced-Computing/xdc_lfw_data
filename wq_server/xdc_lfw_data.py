@@ -67,13 +67,12 @@ if args.action is not None:
     l = landsat.Landsat(sd, ed, args.region, args.action)
     l.download()
     landsat_files = l.__dict__['output']
-    
+
     if onedata_mode == 1:
-        utils.to_onedata(sentinel_files, landsat_files, args.region)
         utils.clean_temporal_path()
 
     if args.action == 'water_mask' or args.action == 'water_surface':
-        
+
         water.main_water(sentinel_files, landsat_files, args.region, args.action)
 
     elif args.action == 'cloud_mask' or args.action == 'cloud_coverage':

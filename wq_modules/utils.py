@@ -140,38 +140,36 @@ def path_configurations(onedata_mode):
 
     if onedata_mode == 1:
 
-        datasets_path = config.datasets_path
-        temporal_path = config.temporal_path
-        if not os.path.isdir(temporal_path):
-            os.mkdir(temporal_path)
+        onedata_path = config.datasets_path
+        local_path = config.local_path
+        os.mkdir(local_path)
 
         for region in list_region:
-            if not os.path.isdir(os.path.join(temporal_path, region)):
-                os.mkdir(os.path.join(temporal_path, region))
+            os.mkdir(os.path.join(local_path, region))
 
-        shutil.copy(os.path.join(datasets_path, file), temporal_path)
+        shutil.copy(os.path.join(onedata_path, file), local_path)
 
     else:
 
-        datasets_path = config.datasets_path
+        local_path = config.local_path
 
         try:
-            with open(os.path.join(datasets_path, file)) as data_file:
+            with open(os.path.join(local_path, file)) as data_file:
                 json.load(data_file)
         except:
-            if not (os.path.isdir(datasets_path)):
-                os.mkdir(datasets_path)
+            if not (os.path.isdir(local_path)):
+                os.mkdir(local_path)
 
-        dictionary = {"Sentinel-2": {}, "Landsat 8": {}}
+            dictionary = {"Sentinel-2": {}, "Landsat 8": {}}
 
-        for region in list_region:
+            for region in list_region:
 
-            os.mkdir(os.path.join(datasets_path, region))
-            dictionary['Sentinel-2'][region] = []
-            dictionary['Landsat 8'][region] = []
+                os.mkdir(os.path.join(local_path, region))
+                dictionary['Sentinel-2'][region] = []
+                dictionary['Landsat 8'][region] = []
 
-        with open(os.path.join(datasets_path, 'downloaded_files.json'), 'w') as outfile:
-            json.dump(dictionary, outfile)
+            with open(os.path.join(local_path, 'downloaded_files.json'), 'w') as outfile:
+                json.dump(dictionary, outfile)
 
 
 def unzip_tarfile(local_filename, date_path):
@@ -190,40 +188,35 @@ def unzip_zipfile(local_filename, date_path):
     os.remove(local_filename)
 
 
-def to_onedata(sentinel_files, landsat_files, region):
+def to_onedata(files, region):
 
     #paths
-    datasets_path = config.datasets_path
-    files = {**sentinel_files, **landsat_files}
-    
+    onedata_path = config.datasets_path
+
     for file in files:
-        
+
         try:
             date_path = files[file]['path']
-        except:
-            continue
-            
-        if os.path.isdir(date_path):
-            try:
-                shutil.move(date_path, os.path.join(datasets_path, region))
-                metadata_gen.metadata_gen(file, files[file]['inidate'], files[file]['enddate'], files[file]['region'], files[file]['N'], files[file]['W'], files[file]['params'])
 
-            except:
-                msg = "impossible to move the {} file to onedata".format(file)
-                raise argparse.ArgumentTypeError(msg)
+            print ("    moving {} file to onedata".format(file))
+            shutil.move(date_path, os.path.join(onedata_path, region))
+            metadata_gen.metadata_gen(file, files[file]['inidate'], files[file]['enddate'], files[file]['region'], files[file]['N'], files[file]['W'], files[file]['params'])
 
             shutil.rmtree(date_path, ignore_errors=True)
+
+        except:
+            continue
 
 
 def clean_temporal_path():
 
     #path
-    datasets_path = config.datasets_path
-    temporal_path = config.temporal_path
+    onedata_path = config.datasets_path
+    local_path = config.local_path
     file = 'downloaded_files.json'
 
-    shutil.copy(os.path.join(temporal_path, file), datasets_path)
-    shutil.rmtree(temporal_path, ignore_errors=True)
+    shutil.copy(os.path.join(local_path, file), onedata_path)
+    shutil.rmtree(local_path, ignore_errors=True)
 
 
 def load_bands(datepath, band_list):
