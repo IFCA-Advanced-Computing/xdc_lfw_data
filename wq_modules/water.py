@@ -38,13 +38,17 @@ def main_water(sentinel_files, landsat_files, region, action):
     """
         Dowloand Sentinel and landsat files and chose de subfuncion
     """
-    
-    path = config.datasets_path
-        
+
+    #paths
+    if config.onedata_mode == 1:
+        path = config.datasets_path
+    else:
+        path = config.local_path
+
     for file in sentinel_files:
-        
+
         date_path = os.path.join(path, region, file)
-        
+
         if action == 'water_mask':
 
             lon, lat, water_mask = mask("Sentinel-2", date_path)

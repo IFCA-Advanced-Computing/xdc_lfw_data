@@ -45,200 +45,122 @@ import json
 
 class Sentinel:
 
-    def __init__(self, inidate, enddate, region=None, action=None):
+    def __init__(self, inidate, enddate, region=None, action=None,
+                 platform='Sentinel-2', producttype='S2MSI1C'):
 
-        #data needed for download files
+        #Search parameter needed for download
         self.inidate = inidate.strftime('%Y-%m-%dT%H:%M:%SZ')
         self.enddate = enddate.strftime('%Y-%m-%dT%H:%M:%SZ')
         self.region = region
         self.coord = config.regions[region]["coordinates"]
         self.action = action
-        
+        self.producttype = producttype
+        self.platform = platform
+
         #work path
-        self.onedata_mode = config.onedata_mode
-        if self.onedata_mode == 1:
-            self.path = config.temporal_path
-        else:
-            self.path = config.datasets_path
-            
+        self.path = config.local_path
+
         #metadata of the data
         self.output = {}
 
-        #sentinel credentials
-        self.credentials = config.sentinel_pass
-
         #ESA APIs
         self.api_url = 'https://scihub.copernicus.eu/apihub/'
+        self.credentials = config.sentinel_pass
 
-
-    def query_date(self):
-        """
-        query_date
-        ----------
-        Format datetime input as YYYY-MM-DDThh:mm:ssZ and return it.
-
-        Parameters
-        ----------
-        in_date : datetime
-            datetime.strptime("YYYY-MM-dd", "%Y-%m-%d")
-        Returns
-        -------
-        str
-            Formatted string
-
-        Raises
-        ------
-        ValueError
-            Unsupported date value
-        """
-
-        return (self.inidate, self.enddate)
-
-
-    def query_region(self):
-
-        return '"Intersects(POLYGON(({0} {1},{2} {1},{2} {3},{0} {3},{0} {1})))"'.format(self.coord['W'], self.coord['S'], self.coord['E'], self.coord['N'])
-
-
-    def format_query(self):
-
-        keywords = ["platformname", "beginposition", "footprint", "producttype"]
-        query_parts = []
-
-        for k in keywords:
-            if k == "platformname":
-                query_parts.append('{}:{}'.format(k, "Sentinel-2"))
-
-            if k == "beginposition":
-
-                value = self.query_date()
-
-                # Handle ranged values & Handle value ranges
-                if isinstance(value, (list, tuple)) and len(value) == 2:
-                    value = '[{} TO {}]'.format(*value)
-                else:
-                    raise ValueError("Invalid number of elements in list")
-
-                query_parts.append('{}:{}'.format(k, value))
-
-            if k == "footprint":
-
-                coord = self.query_region()
-                query_parts.append('{}:{}'.format(k, coord))
-
-            if k == "producttype":
-
-                query_parts.append('{}:{}'.format(k, "S2MSI1C"))
-
-        return ' '.join(query_parts)
-
-
-    def format_url(self, order_by=None, limit=None, offset=0):
-
-
-        self.api_url = self.api_url if self.api_url.endswith('/') else self.api_url + '/'
-        page_size = 100
-
-        if limit is None:
-            limit = page_size
-        limit = min(limit, page_size)
-        url = 'search?format=json&rows={}'.format(limit)
-        url += '&start={}'.format(offset)
-        if order_by:
-            url += '&orderby={}'.format(order_by)
-        return urljoin(self.api_url, url)
 
     def search(self):
-    # store last query (for testing)
 
-        order_by = None
-        limit = None
-        offset = 0
-        query = self.format_query()
+        # Post the query to Copernicus
+        query = {'footprint': '"Intersects(POLYGON(({0} {1},{2} {1},{2} {3},{0} {3},{0} {1})))"'.format(self.coord['W'],
+                                                                                                        self.coord['S'],
+                                                                                                        self.coord['E'],
+                                                                                                        self.coord['N']),
+                 'producttype': self.producttype,
+                 'platformname': self.platform,
+                 'beginposition': '[{} TO {}]'.format(self.inidate, self.enddate)
+                 }
 
-        logger = logging.getLogger('sentinelsat.SentinelAPI')
-        logger.debug("Sub-query: offset=%s, limit=%s", offset, limit)
+        data = {'format': 'json',
+                'start': 0,  # offset
+                'rows': 100,
+                'limit': 100,
+                'orderby': '',
+                'q': ' '.join(['{}:{}'.format(k, v) for k, v in query.items()])
+                }
 
-        # load query results
-        url = self.format_url(order_by, limit, offset)
+        response = requests.post(self.api_url + 'search?',
+                                 data=data,
+                                 auth=(self.credentials['username'], self.credentials['password']),
+                                 headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'})
 
-        session = requests.Session()
-        response = session.post(url, {'q': query}, auth=(self.credentials['username'], self.credentials['password']),
-                                     headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'})
+        # Parse the response
+        json_feed = response.json()['feed']
+        results = json_feed['entry']
+        if isinstance(results, dict):  # if the query returns only one product, products will be a dict not a list
+            results = [results]
 
-        # parse response content
-        try:
-            json_feed = response.json()['feed']
-            if json_feed['opensearch:totalResults'] is None:
-                # We are using some unintended behavior of the server that a null is
-                # returned as the total results value when the query string was incorrect.
-                print ('Invalid query string. Check the parameters and format.', response)
-                print (json_feed['opensearch:totalResults'])
-            total_results = int(json_feed['opensearch:totalResults'])
-        except (ValueError, KeyError):
-            print ('API response not valid. JSON decoding failed.', response)
+        print('Found {} results from Sentinel'.format(json_feed['opensearch:totalResults']))
+        print('Retrieving {} results'.format(len(results)))
 
-        products = json_feed.get('entry', [])
-        # this verification is necessary because if the query returns only
-        # one product, self.products will be a dict not a list
-        if isinstance(products, dict):
-            products = [products]
-
-        return products, total_results
+        return results
 
 
     def download(self):
 
-        products, total_results = self.search()
-        chunk_size = 1024
-
         session = requests.session()
         session.auth = (self.credentials['username'], self.credentials['password'])
+        chunk_size = 1024
 
+        #load the downloaded files
         with open(os.path.join(self.path, 'downloaded_files.json')) as data_file:
             downloaded_files = json.load(data_file)
 
-        for product in products:
+        #results of the search
+        results = self.search()
 
-            ID = product['id']
-            filename = product['title']
+        for file in results:
+
+            ID = file['id']
+            filename = file['title']
+            summary = file['summary']
 
             #file size
             download_url = "https://scihub.copernicus.eu/dhus/odata/v1/Products('{}')/$value".format(ID)
             resp = session.get(download_url, stream=True, allow_redirects=True)
-            total_size = int(resp.headers['content-Length'])
+            size = int(resp.headers['content-Length'])
 
-            if total_size <= 250000000:
+            if size < 250000000: #size Bytes
+                print ("    {} not valid file!, corner image".format(filename))
                 continue
-            
+
             #Metadata for Onedata
-            self.output[ID] = {}
-            self.output[ID]['inidate'] = (product['summary'].split(',')[0]).split(' ')[-1]
-            self.output[ID]['enddate'] = (product['summary'].split(',')[0]).split(' ')[-1]
-            self.output[ID]['region'] = self.region
-            self.output[ID]['W'] = str(self.coord['W'])
-            self.output[ID]['E'] = str(self.coord['E'])
-            self.output[ID]['N'] = str(self.coord['N'])
-            self.output[ID]['S'] = str(self.coord['S'])
-            self.output[ID]['params'] = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B10', 'B11', 'B12']
+            self.output[filename] = {}
+            self.output[filename]['inidate'] = summary.split(',')[0].split(' ')[-1]
+            self.output[filename]['enddate'] = summary.split(',')[0].split(' ')[-1]
+            self.output[filename]['region'] = self.region
+            self.output[filename]['W'] = str(self.coord['W'])
+            self.output[filename]['E'] = str(self.coord['E'])
+            self.output[filename]['N'] = str(self.coord['N'])
+            self.output[filename]['S'] = str(self.coord['S'])
+            self.output[filename]['params'] = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B10', 'B11', 'B12']
 
-            
-            if ID in downloaded_files['Sentinel-2'][self.region]:
-                print ("    file {} already downloaded".format(ID))
+            if filename in downloaded_files['Sentinel-2'][self.region]:
+                print ("    file {} already downloaded".format(filename))
                 continue
-            
-            #create path and folder for the scene
-            date_path = os.path.join(self.path, self.region, ID)
-            self.output[ID]['path'] = date_path
-            os.makedirs(date_path)
 
-            print ('    Downloading {} files'.format(ID))
-            downloaded_files['Sentinel-2'][self.region].append(ID)
-            
+            #create path and folder for the scene
+            region_path = os.path.join(self.path, self.region)
+            date_path = os.path.join(region_path, filename)
+            self.output[filename]['path'] = date_path
+            os.mkdir(date_path)
+
+            print ('    Downloading {} files'.format(filename))
+            downloaded_files['Sentinel-2'][self.region].append(filename)
+
             #download
-            with tqdm(total=total_size, unit_scale=True, unit='B') as pbar:
+            with tqdm(total = size, unit_scale=True, unit='B') as pbar:
                 with session.get(download_url, auth =session.auth, stream=True, allow_redirects=True) as r:
-                    filename = os.path.join(date_path, '{}.zip'.format(filename))
+                    filename = os.path.join(region_path, '{}.zip'.format(filename))
                     with open(filename, 'wb') as f:
                         for chunk in r.iter_content(chunk_size=chunk_size):
                             if chunk:
@@ -252,3 +174,6 @@ class Sentinel:
         # Save the new list of files
         with open(os.path.join(self.path, 'downloaded_files.json'), 'w') as outfile:
             json.dump(downloaded_files, outfile)
+
+        #moving the data to onedata
+        utils.to_onedata(self.output, self.region)
