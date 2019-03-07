@@ -124,17 +124,19 @@ def mask(platform, date_path):
         lon, lat, bands = utils.load_bands(date_path, band_list)
 
         #MNDWI
-        mndwi = (bands['B3'] - bands['B5']) /(bands['B3'] + bands['B5'])
+        #mndwi = (bands['B3'] - bands['B5']) /(bands['B3'] + bands['B5'])
+        mndwi = bands['B5']
         #Clouds
-#        mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
-#        mask_cloud = mask_cloud.astype(np.float32)
+        mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
+        mask_cloud = mask_cloud.astype(np.float32)
 
-        threshold = filters.threshold_otsu(bands['B5'].data)
-        water_mask = (bands['B5'] > threshold)
-#        water_mask = water_mask.astype(np.float32)
+        threshold = filters.threshold_otsu(mndwi.data)
+        water_mask = (mndwi > threshold)
+        water_mask = 1 - water_mask
+        water_mask = water_mask.astype(np.float32)
 
-#        water_mask = water_mask - mask_cloud
-#        water_mask = water_mask.clip(min=0)
+        water_mask = water_mask - mask_cloud
+        water_mask = water_mask.clip(min=0)
 
     #plot
     plot_mask(mndwi, water_mask)
