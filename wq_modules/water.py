@@ -129,8 +129,8 @@ def mask(platform, date_path):
 #        mask_cloud = ((bands['B1'] > 0.18) & (bands['B5'] > 0.14) & (np.max((bands['B1'], bands['B3'])) > bands['B5'] * 0.67))
 #        mask_cloud = mask_cloud.astype(np.float32)
 
-        threshold = filters.threshold_otsu(mndwi.data)
-        water_mask = (mndwi > threshold)
+        threshold = filters.threshold_otsu(bands['B5'].data)
+        water_mask = (bands['B5'] > threshold)
 #        water_mask = water_mask.astype(np.float32)
 
 #        water_mask = water_mask - mask_cloud
