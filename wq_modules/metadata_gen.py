@@ -148,7 +148,10 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
         try:
             
             print (config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
-            print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
+            #print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
+            js = eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml")
+            met = json.loads(js)
+            print(json.dumps(met, indent=1, sort_keys=True))
             r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
 
             print("Metadata attachement: %i" % r.status_code)
