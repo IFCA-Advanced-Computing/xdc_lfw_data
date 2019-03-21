@@ -78,7 +78,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
     tree.write(config.datasets_path + '/' + geographicDesc + '/' + title+".xml",encoding='UTF-8', xml_declaration=True)
     
     if (config.onedata_mode == 1):
-        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgYmJlMjEzYzZhZmU4NzkwNmU1NWZkMTVlNTJjZDEyMTMKMDAxYWNpZCB00aW1lIDwgMTU3MTI5NjQxNAowMDJmc2lnbmF00dXJlIBppv00BiBW01o3vP02kwjnGsmliggXhDu1Y9X02SJz1WaPVCg', 'Content-type' : 'application/json'}
+        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgOTAwNGNlNzBiYWQyMTYzYzY1YWY4NTNhZjQyMGJlYWEKMDAxYWNpZCB00aW1lIDwgMTU4MzkxODYyOQowMDJmc2lnbmF00dXJlICmASYmuGx6CSPHwkf3s9pXW2szUqJPBPoFEXIKOZ2L00Cg', 'Content-type' : 'application/json'}
         try:
             print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
             print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
@@ -144,7 +144,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
     tree.write(config.datasets_path + '/' + geographicDesc + '/' + title+".xml",encoding='UTF-8', xml_declaration=True)
     
     if (config.onedata_mode == 1):
-        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgYmJlMjEzYzZhZmU4NzkwNmU1NWZkMTVlNTJjZDEyMTMKMDAxYWNpZCB00aW1lIDwgMTU3MTI5NjQxNAowMDJmc2lnbmF00dXJlIBppv00BiBW01o3vP02kwjnGsmliggXhDu1Y9X02SJz1WaPVCg', 'Content-type' : 'application/json'}
+        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgOTAwNGNlNzBiYWQyMTYzYzY1YWY4NTNhZjQyMGJlYWEKMDAxYWNpZCB00aW1lIDwgMTU4MzkxODYyOQowMDJmc2lnbmF00dXJlICmASYmuGx6CSPHwkf3s9pXW2szUqJPBPoFEXIKOZ2L00Cg', 'Content-type' : 'application/json'}
         try:
             
             print (config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
