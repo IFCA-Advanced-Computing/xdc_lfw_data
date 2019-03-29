@@ -137,7 +137,7 @@ class Meteo:
                         try:
                             spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
                         except:
-                            print('Error')
+                            print('---')
                     conn.close()
                     self.inidate = temp_end_date
                     temp_end_date = self.inidate + datetime.timedelta(days=30)
@@ -158,7 +158,7 @@ class Meteo:
                     try:
                         spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
                     except:
-                        print('Error')
+                        print('---')
                 conn.close()
         csvfile.close()
         return salidaInformacion
