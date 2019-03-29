@@ -78,7 +78,11 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
     tree.write(config.datasets_path + '/' + geographicDesc + '/' + title+".xml",encoding='UTF-8', xml_declaration=True)
     
     if (config.onedata_mode == 1):
-        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgOTAwNGNlNzBiYWQyMTYzYzY1YWY4NTNhZjQyMGJlYWEKMDAxYWNpZCB00aW1lIDwgMTU4MzkxODYyOQowMDJmc2lnbmF00dXJlICmASYmuGx6CSPHwkf3s9pXW2szUqJPBPoFEXIKOZ2L00Cg', 'Content-type' : 'application/json'}
+        try:
+            token = os.environ['ONECLIENT_AUTHORIZATION_TOKEN']
+        except KeyError:
+            token = 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgOTAwNGNlNzBiYWQyMTYzYzY1YWY4NTNhZjQyMGJlYWEKMDAxYWNpZCB00aW1lIDwgMTU4MzkxODYyOQowMDJmc2lnbmF00dXJlICmASYmuGx6CSPHwkf3s9pXW2szUqJPBPoFEXIKOZ2L00Cg'
+        header_json = {'X-Auth-Token': token, 'Content-type' : 'application/json'}
         try:
             print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
             print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
@@ -144,7 +148,11 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
     tree.write(config.datasets_path + '/' + geographicDesc + '/' + title+".xml",encoding='UTF-8', xml_declaration=True)
     
     if (config.onedata_mode == 1):
-        header_json = {'X-Auth-Token': 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgOTAwNGNlNzBiYWQyMTYzYzY1YWY4NTNhZjQyMGJlYWEKMDAxYWNpZCB00aW1lIDwgMTU4MzkxODYyOQowMDJmc2lnbmF00dXJlICmASYmuGx6CSPHwkf3s9pXW2szUqJPBPoFEXIKOZ2L00Cg', 'Content-type' : 'application/json'}
+        try:
+            token = os.environ['ONECLIENT_AUTHORIZATION_TOKEN']
+        except KeyError:
+            token = 'MDAxNWxvY2F00aW9uIG9uZXpvbmUKMDAzMGlkZW500aWZpZXIgOTAwNGNlNzBiYWQyMTYzYzY1YWY4NTNhZjQyMGJlYWEKMDAxYWNpZCB00aW1lIDwgMTU4MzkxODYyOQowMDJmc2lnbmF00dXJlICmASYmuGx6CSPHwkf3s9pXW2szUqJPBPoFEXIKOZ2L00Cg'
+        header_json = {'X-Auth-Token': token, 'Content-type' : 'application/json'}
         try:
             
             print (config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
