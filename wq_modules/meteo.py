@@ -115,7 +115,10 @@ class Meteo:
                 for resultados in datosEstacion:
                     #print(resultados['fecha'],":",resultados['tmed'],"C")
                     try:
-                        spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
+                        wrt = []
+                        for e in self.translate_params():
+                            wtr.append(resultados[e])
+                        spamwriter.writerow(wrt)
                     except:
                         print('punch')
                 conn.close()
@@ -135,7 +138,10 @@ class Meteo:
                     for resultados in datosEstacion:
                         #print(resultados['fecha'],":",resultados['tmed'],"C")
                         try:
-                            spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
+                            wrt = []
+                            for e in self.translate_params():
+                                wtr.append(resultados[e])
+                            spamwriter.writerow(wrt)
                         except:
                             print('---')
                     conn.close()
@@ -156,7 +162,10 @@ class Meteo:
                 for resultados in datosEstacion:
                     #print(resultados['fecha'],":",resultados['tmed'],"C")
                     try:
-                        spamwriter.writerow([resultados['indicativo'],resultados['fecha'], resultados['tmed']])
+                        wrt = []
+                        for e in self.translate_params():
+                            wtr.append(resultados[e])
+                        spamwriter.writerow(wrt)
                     except:
                         print('---')
                 conn.close()
@@ -174,3 +183,19 @@ class Meteo:
         if (config.onedata_mode == 1):
             metadata_gen.metadata_gen(title,beginDate,endDate,self.region,str(self.lat),str(self.lon),self.params)
         return {"output": self.general_name + ".csv"}
+
+    """Method for trasnlating from original parameter names to AEMET param names"""
+    def translate_params(self):
+        aemet_params = []
+        for e in self.params:
+            if e == "ID":
+                aemet_params.append('indicativo')
+            if e == "Date":
+                aemet_params.append('fecha')
+            if e == "Temp":
+                aemet_params.append('tmed')
+            if e == "Wind_Speed":
+                aemet_params.append('velmedia')
+            if e == "Wind_Dir":
+                aemet_params.append('dir')
+        return aemet_params
