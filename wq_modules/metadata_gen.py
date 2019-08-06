@@ -198,11 +198,25 @@ def attribute_block_csv(params,dataTable):
             ET.SubElement(attribute,"formatString").text="YYYY-MM-DD"
         
         elif att == "Temp":
-            attribute=ET.SubElement(attributeList,"attribute",id="Date")
+            attribute=ET.SubElement(attributeList,"attribute",id="Temp")
             ET.SubElement(attribute,"attributeName").text="Temperature"
             ET.SubElement(attribute,"attributeLabel").text="Temp"
-            ET.SubElement(attribute,"attributeDefinition").text="Date" 
+            ET.SubElement(attribute,"attributeDefinition").text="Temperature" 
             ET.SubElement(attribute,"standardUnit").text="Celsius"
+
+        elif att == "Wind_Speed":
+            attribute=ET.SubElement(attributeList,"attribute",id="Wind_Speed")
+            ET.SubElement(attribute,"attributeName").text="Wind_Speed"
+            ET.SubElement(attribute,"attributeLabel").text="Wind_Speed"
+            ET.SubElement(attribute,"attributeDefinition").text="Average wind speed"
+            ET.SubElement(attribute,"standardUnit").text="m/s"
+
+        elif att == "Wind_Dir":
+            attribute=ET.SubElement(attributeList,"attribute",id="Wind_Dir")
+            ET.SubElement(attribute,"attributeName").text="Wind_Dir"
+            ET.SubElement(attribute,"attributeLabel").text="Wind_Dir"
+            ET.SubElement(attribute,"attributeDefinition").text="Wind direction"
+            ET.SubElement(attribute,"standardUnit").text="degrees"
         
         elif att == "ID":
             attribute=ET.SubElement(attributeList,"attribute",id="ID")
