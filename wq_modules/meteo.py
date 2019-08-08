@@ -98,7 +98,7 @@ class Meteo:
         conn = http.client.HTTPSConnection(self.api_url)
         salidaInformacion=[]
         with open(self.general_name+'.csv', 'w') as csvfile:
-            spamwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            spamwriter = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
             spamwriter.writerow(self.params)
             delta = self.enddate-self.inidate
             if (delta.days <31):
@@ -116,11 +116,13 @@ class Meteo:
                     #print(resultados['fecha'],":",resultados['tmed'],"C")
                     try:
                         wrt = []
+                        if 'velmedia' in resultados:
+                            resultados['velmedia'] = resultados['velmedia'].replace(',', '.')
                         for e in self.translate_params():
-                            wtr.append(resultados[e])
+                            wrt.append(resultados[e])
                         spamwriter.writerow(wrt)
-                    except:
-                        print('punch')
+                    except Exception as e:
+                        print(e)
                 conn.close()
             else:
                 temp_end_date = self.inidate + datetime.timedelta(days=30)
@@ -139,11 +141,13 @@ class Meteo:
                         #print(resultados['fecha'],":",resultados['tmed'],"C")
                         try:
                             wrt = []
+                            if 'velmedia' in resultados:
+                                resultados['velmedia'] = resultados['velmedia'].replace(',', '.')
                             for e in self.translate_params():
-                                wtr.append(resultados[e])
+                                wrt.append(resultados[e])
                             spamwriter.writerow(wrt)
-                        except:
-                            print('---')
+                        except Exception as e:
+                            print(e)
                     conn.close()
                     self.inidate = temp_end_date
                     temp_end_date = self.inidate + datetime.timedelta(days=30)
@@ -163,18 +167,25 @@ class Meteo:
                     #print(resultados['fecha'],":",resultados['tmed'],"C")
                     try:
                         wrt = []
+                        if 'velmedia' in resultados:
+                            resultados['velmedia'] = resultados['velmedia'].replace(',', '.')
                         for e in self.translate_params():
-                            wtr.append(resultados[e])
+                            wrt.append(resultados[e])
                         spamwriter.writerow(wrt)
-                    except:
-                        print('---')
+                    except Exception as e:
+                        print(e)
                 conn.close()
         csvfile.close()
         return salidaInformacion
 
     def get_meteo(self):
-        self.general_name = self.path + '/' + self.region + '/' + "meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')
-        title = "meteo_"+self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')+".csv"
+        prefix = ''
+        if 'Temp' in self.params:
+            prefix = 'temp_'
+        elif 'speed' in self.params:
+            prefix = 'wind_'
+        self.general_name = self.path + '/' + self.region + '/' + prefix + self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')
+        title = prefix + self.inidate.strftime('%Y-%m-%d')+"_"+self.enddate.strftime('%Y-%m-%d')+".csv"
         beginDate = self.inidate.strftime('%Y-%m-%d')
         endDate = self.enddate.strftime('%Y-%m-%d')
         self.station = self.find_station() #TODO add lat/lon
@@ -192,10 +203,12 @@ class Meteo:
                 aemet_params.append('indicativo')
             if e == "Date":
                 aemet_params.append('fecha')
+            if e == "date":
+                aemet_params.append('fecha')
             if e == "Temp":
                 aemet_params.append('tmed')
-            if e == "Wind_Speed":
+            if e == "speed":
                 aemet_params.append('velmedia')
-            if e == "Wind_Dir":
+            if e == "dir":
                 aemet_params.append('dir')
         return aemet_params
