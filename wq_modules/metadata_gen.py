@@ -188,6 +188,8 @@ def file_block_csv(title,params,parent):
     return parent
 
 def attribute_block_csv(params,dataTable):
+    print("PARAMS")
+    print(params)
     #TODO Complete
     attributeList=ET.SubElement(dataTable,"attributeList")
     for att in params:
