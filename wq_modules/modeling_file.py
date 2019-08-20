@@ -24,7 +24,7 @@ def update_param_value(dic,f1,f2):
     return f2
 
 def csv_to_wind(path, ini_date, end_date, output):
-    data = pd.read_csv(path,delimiter=',')
+    data = pd.read_csv(path,delimiter=';')
     data['date'] = pd.to_datetime(data['date'])
     f = open(output, 'w')
     line = ''
@@ -49,7 +49,7 @@ def csv_to_wind(path, ini_date, end_date, output):
     f.close()
 
 def csv_to_tem(path, ini_date, end_date, output):
-    data = pd.read_csv(path,delimiter=',')
+    data = pd.read_csv(path,delimiter=';')
     data['date'] = pd.to_datetime(data['date'])
     f = open(output, 'w')
     line = ''
@@ -100,7 +100,7 @@ def gen_uniform_output_bct(out_dic,output,ini_date,end_date):
 def csv_to_bct(out_dic,output,input_csv,ini_date,end_date):
     f = open(output, 'w')
     for e in out_dic:
-        data = pd.read_csv(input_csv+out_dic[e]['Name']+'.csv',delimiter=',')
+        data = pd.read_csv(input_csv+out_dic[e]['Name']+'.csv',delimiter=';')
         print("Opening ",input_csv+out_dic[e]['Name']+'.csv')
         data['date'] = pd.to_datetime(data['date'])
         line = ''
@@ -195,7 +195,7 @@ def csv_to_dis(in_dic,output_folder,output_name,ini_date,end_date):
     f = open(output_name, 'w')
 
     for e in in_dic:
-        data = pd.read_csv(output_folder+in_dic[e]['Name']+'.csv',delimiter=',')
+        data = pd.read_csv(output_folder+in_dic[e]['Name']+'.csv',delimiter=';')
         print("Opening ",output_folder+e+'.csv')
         data['date'] = pd.to_datetime(data['date'])
         line = ''
