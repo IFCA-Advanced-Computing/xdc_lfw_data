@@ -86,7 +86,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,eastBounding,
         try:
             print(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
             print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
-            r = requests.put(config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(title+".xml"))
+            r = requests.put(config.onedata_url+config.onedata_api+'metadata/json/'+ config.onedata_space + '/' + geographicDesc + '/' + title,headers=header_json,data=eml_to_json(title+".xml"))
             print("Metadata attachement: %i" % r.status_code)
             os.remove(title+".xml")
         except requests.exceptions.RequestException as e:
@@ -155,7 +155,7 @@ def metadata_gen(title,dateIni,dateEnd,geographicDesc,westBounding,northBounding
         header_json = {'X-Auth-Token': token, 'Content-type' : 'application/json'}
         try:
             
-            print (config.onedata_url+config.onedata_api+'metadata/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
+            print (config.onedata_url+config.onedata_api+'metadata/json/'+ config.onedata_space + '/' + geographicDesc + '/' + title)
             #print(eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml"))
             js = eml_to_json(config.datasets_path + '/' + geographicDesc + '/' + title+".xml")
             met = json.loads(js)
